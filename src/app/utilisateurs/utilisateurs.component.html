@@ -1,1 +1,583 @@
-<p>utilisateurs works!</p>
+<!-- Utilisateurs Component -->
+<div class="component-container">
+    <header class="component-header">
+      <h1><i class="fas fa-users"></i> Gestion des Utilisateurs</h1>
+      <div class="actions-bar">
+        <div class="search-container">
+          <input type="text" placeholder="Rechercher un utilisateur...">
+          <button class="search-button"><i class="fas fa-search"></i></button>
+        </div>
+        <button class="add-button"><i class="fas fa-plus"></i> Ajouter un utilisateur</button>
+        <div class="filter-dropdown">
+          <button class="filter-button"><i class="fas fa-filter"></i> Filtrer</button>
+          <div class="dropdown-content">
+            <label><input type="checkbox" checked> Enseignants</label>
+            <label><input type="checkbox" checked> Étudiants</label>
+            <label><input type="checkbox" checked> Administrateurs</label>
+          </div>
+        </div>
+      </div>
+    </header>
+  
+    <div class="data-table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nom complet</th>
+            <th>Email</th>
+            <th>Type</th>
+            <th>Date d'inscription</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>001</td>
+            <td class="user-info">
+              <div class="user-avatar"></div>
+              <span>Ahmed Benali</span>
+            </td>
+            <td>ahmed.benalidu.ma</td>
+            <td><span class="badge teacher">Enseignant</span></td>
+            <td>12/02/2024</td>
+            <td><span class="status-badge active">Actif</span></td>
+            <td class="actions-cell">
+              <button class="action-button edit"><i class="fas fa-edit"></i></button>
+              <button class="action-button delete"><i class="fas fa-trash"></i></button>
+              <button class="action-button view"><i class="fas fa-eye"></i></button>
+            </td>
+          </tr>
+          <tr>
+            <td>002</td>
+            <td class="user-info">
+              <div class="user-avatar"></div>
+              <span>Sara Khadija</span>
+            </td>
+            <td>sara.kedu.ma</td>
+            <td><span class="badge student">Étudiant</span></td>
+            <td>15/02/2024</td>
+            <td><span class="status-badge active">Actif</span></td>
+            <td class="actions-cell">
+              <button class="action-button edit"><i class="fas fa-edit"></i></button>
+              <button class="action-button delete"><i class="fas fa-trash"></i></button>
+              <button class="action-button view"><i class="fas fa-eye"></i></button>
+            </td>
+          </tr>
+          <tr>
+            <td>003</td>
+            <td class="user-info">
+              <div class="user-avatar"></div>
+              <span>Youssef Nabil</span>
+            </td>
+            <td>youssef.nedu.ma</td>
+            <td><span class="badge student">Étudiant</span></td>
+            <td>20/02/2024</td>
+            <td><span class="status-badge inactive">Inactif</span></td>
+            <td class="actions-cell">
+              <button class="action-button edit"><i class="fas fa-edit"></i></button>
+              <button class="action-button delete"><i class="fas fa-trash"></i></button>
+              <button class="action-button view"><i class="fas fa-eye"></i></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="pagination">
+        <button><i class="fas fa-chevron-left"></i></button>
+        <button class="active">1</button>
+        <button>2</button>
+        <button>3</button>
+        <button><i class="fas fa-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Niveaux Component -->
+  <div class="component-container">
+    <header class="component-header">
+      <h1><i class="fas fa-layer-group"></i> Gestion des Niveaux</h1>
+      <div class="actions-bar">
+        <div class="search-container">
+          <input type="text" placeholder="Rechercher un niveau...">
+          <button class="search-button"><i class="fas fa-search"></i></button>
+        </div>
+        <button class="add-button"><i class="fas fa-plus"></i> Ajouter un niveau</button>
+      </div>
+    </header>
+  
+    <div class="cards-grid">
+      <div class="level-card">
+        <div class="level-header">
+          <span class="level-badge">L1</span>
+          <div class="level-actions">
+            <button><i class="fas fa-edit"></i></button>
+            <button><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <h3>Licence 1ère année</h3>
+        <p>Premier niveau du cycle de licence</p>
+        <div class="level-stats">
+          <div class="stat">
+            <i class="fas fa-users"></i>
+            <span>125 Étudiants</span>
+          </div>
+          <div class="stat">
+            <i class="fas fa-book-open"></i>
+            <span>8 Cours</span>
+          </div>
+        </div>
+        <button class="view-details">Voir détails</button>
+      </div>
+      
+      <div class="level-card">
+        <div class="level-header">
+          <span class="level-badge">L2</span>
+          <div class="level-actions">
+            <button><i class="fas fa-edit"></i></button>
+            <button><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <h3>Licence 2ème année</h3>
+        <p>Deuxième niveau du cycle de licence</p>
+        <div class="level-stats">
+          <div class="stat">
+            <i class="fas fa-users"></i>
+            <span>98 Étudiants</span>
+          </div>
+          <div class="stat">
+            <i class="fas fa-book-open"></i>
+            <span>10 Cours</span>
+          </div>
+        </div>
+        <button class="view-details">Voir détails</button>
+      </div>
+      
+      <div class="level-card">
+        <div class="level-header">
+          <span class="level-badge">L3</span>
+          <div class="level-actions">
+            <button><i class="fas fa-edit"></i></button>
+            <button><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <h3>Licence 3ème année</h3>
+        <p>Troisième niveau du cycle de licence</p>
+        <div class="level-stats">
+          <div class="stat">
+            <i class="fas fa-users"></i>
+            <span>87 Étudiants</span>
+          </div>
+          <div class="stat">
+            <i class="fas fa-book-open"></i>
+            <span>12 Cours</span>
+          </div>
+        </div>
+        <button class="view-details">Voir détails</button>
+      </div>
+      
+      <div class="level-card">
+        <div class="level-header">
+          <span class="level-badge">M1</span>
+          <div class="level-actions">
+            <button><i class="fas fa-edit"></i></button>
+            <button><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <h3>Master 1ère année</h3>
+        <p>Premier niveau du cycle de master</p>
+        <div class="level-stats">
+          <div class="stat">
+            <i class="fas fa-users"></i>
+            <span>45 Étudiants</span>
+          </div>
+          <div class="stat">
+            <i class="fas fa-book-open"></i>
+            <span>8 Cours</span>
+          </div>
+        </div>
+        <button class="view-details">Voir détails</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Spécialités Component -->
+  <div class="component-container">
+    <header class="component-header">
+      <h1><i class="fas fa-graduation-cap"></i> Gestion des Spécialités</h1>
+      <div class="actions-bar">
+        <div class="search-container">
+          <input type="text" placeholder="Rechercher une spécialité...">
+          <button class="search-button"><i class="fas fa-search"></i></button>
+        </div>
+        <div class="filter-dropdown">
+          <button class="filter-button"><i class="fas fa-filter"></i> Filtrer par département</button>
+          <div class="dropdown-content">
+            <label><input type="checkbox" checked> Informatique</label>
+            <label><input type="checkbox" checked> Mathématiques</label>
+            <label><input type="checkbox" checked> Physique</label>
+            <label><input type="checkbox" checked> Économie</label>
+          </div>
+        </div>
+        <button class="add-button"><i class="fas fa-plus"></i> Ajouter une spécialité</button>
+      </div>
+    </header>
+  
+    <div class="specialty-cards">
+      <div class="specialty-card">
+        <div class="specialty-header">
+          <div class="specialty-icon"><i class="fas fa-laptop-code"></i></div>
+          <div class="department-badge">Informatique</div>
+        </div>
+        <div class="specialty-content">
+          <h3>Génie Logiciel</h3>
+          <p>Développement et conception de logiciels complexes</p>
+          <div class="specialty-stats">
+            <div class="stat-pill">
+              <i class="fas fa-users"></i> 45 Étudiants
+            </div>
+            <div class="stat-pill">
+              <i class="fas fa-chalkboard-teacher"></i> 8 Enseignants
+            </div>
+          </div>
+        </div>
+        <div class="specialty-footer">
+          <button class="btn-edit"><i class="fas fa-edit"></i> Modifier</button>
+          <button class="btn-view"><i class="fas fa-eye"></i> Détails</button>
+        </div>
+      </div>
+      
+      <div class="specialty-card">
+        <div class="specialty-header">
+          <div class="specialty-icon"><i class="fas fa-network-wired"></i></div>
+          <div class="department-badge">Informatique</div>
+        </div>
+        <div class="specialty-content">
+          <h3>Réseaux et Systèmes</h3>
+          <p>Infrastructure, sécurité et administration des réseaux</p>
+          <div class="specialty-stats">
+            <div class="stat-pill">
+              <i class="fas fa-users"></i> 38 Étudiants
+            </div>
+            <div class="stat-pill">
+              <i class="fas fa-chalkboard-teacher"></i> 6 Enseignants
+            </div>
+          </div>
+        </div>
+        <div class="specialty-footer">
+          <button class="btn-edit"><i class="fas fa-edit"></i> Modifier</button>
+          <button class="btn-view"><i class="fas fa-eye"></i> Détails</button>
+        </div>
+      </div>
+      
+      <div class="specialty-card">
+        <div class="specialty-header">
+          <div class="specialty-icon"><i class="fas fa-calculator"></i></div>
+          <div class="department-badge">Mathématiques</div>
+        </div>
+        <div class="specialty-content">
+          <h3>Mathématiques Appliquées</h3>
+          <p>Applications des mathématiques dans divers domaines</p>
+          <div class="specialty-stats">
+            <div class="stat-pill">
+              <i class="fas fa-users"></i> 32 Étudiants
+            </div>
+            <div class="stat-pill">
+              <i class="fas fa-chalkboard-teacher"></i> 7 Enseignants
+            </div>
+          </div>
+        </div>
+        <div class="specialty-footer">
+          <button class="btn-edit"><i class="fas fa-edit"></i> Modifier</button>
+          <button class="btn-view"><i class="fas fa-eye"></i> Détails</button>
+        </div>
+      </div>
+      
+      <div class="specialty-card">
+        <div class="specialty-header">
+          <div class="specialty-icon"><i class="fas fa-chart-line"></i></div>
+          <div class="department-badge">Économie</div>
+        </div>
+        <div class="specialty-content">
+          <h3>Économie et Gestion</h3>
+          <p>Principes économiques et stratégies de gestion</p>
+          <div class="specialty-stats">
+            <div class="stat-pill">
+              <i class="fas fa-users"></i> 52 Étudiants
+            </div>
+            <div class="stat-pill">
+              <i class="fas fa-chalkboard-teacher"></i> 9 Enseignants
+            </div>
+          </div>
+        </div>
+        <div class="specialty-footer">
+          <button class="btn-edit"><i class="fas fa-edit"></i> Modifier</button>
+          <button class="btn-view"><i class="fas fa-eye"></i> Détails</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Régimes Component -->
+  <div class="component-container">
+    <header class="component-header">
+      <h1><i class="fas fa-book"></i> Gestion des Régimes</h1>
+      <div class="actions-bar">
+        <div class="search-container">
+          <input type="text" placeholder="Rechercher un régime...">
+          <button class="search-button"><i class="fas fa-search"></i></button>
+        </div>
+        <button class="add-button"><i class="fas fa-plus"></i> Ajouter un régime</button>
+      </div>
+    </header>
+  
+    <div class="regimes-container">
+      <div class="regime-table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nom du régime</th>
+              <th>Description</th>
+              <th>Date de création</th>
+              <th>Niveaux</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>R01</td>
+              <td>LMD</td>
+              <td>Licence-Master-Doctorat, système d'études supérieures européen</td>
+              <td>01/01/2024</td>
+              <td>
+                <div class="badges-container">
+                  <span class="mini-badge">L1</span>
+                  <span class="mini-badge">L2</span>
+                  <span class="mini-badge">L3</span>
+                  <span class="mini-badge">M1</span>
+                  <span class="mini-badge">M2</span>
+                </div>
+              </td>
+              <td class="actions-cell">
+                <button class="action-button edit"><i class="fas fa-edit"></i></button>
+                <button class="action-button delete"><i class="fas fa-trash"></i></button>
+                <button class="action-button view"><i class="fas fa-eye"></i></button>
+              </td>
+            </tr>
+            <tr>
+              <td>R02</td>
+              <td>Formation Continue</td>
+              <td>Programme adapté aux personnes en activité professionnelle</td>
+              <td>05/01/2024</td>
+              <td>
+                <div class="badges-container">
+                  <span class="mini-badge">FC1</span>
+                  <span class="mini-badge">FC2</span>
+                  <span class="mini-badge">FC3</span>
+                </div>
+              </td>
+              <td class="actions-cell">
+                <button class="action-button edit"><i class="fas fa-edit"></i></button>
+                <button class="action-button delete"><i class="fas fa-trash"></i></button>
+                <button class="action-button view"><i class="fas fa-eye"></i></button>
+              </td>
+            </tr>
+            <tr>
+              <td>R03</td>
+              <td>Cycle Préparatoire</td>
+              <td>Préparation aux grandes écoles d'ingénieurs</td>
+              <td>10/01/2024</td>
+              <td>
+                <div class="badges-container">
+                  <span class="mini-badge">CP1</span>
+                  <span class="mini-badge">CP2</span>
+                </div>
+              </td>
+              <td class="actions-cell">
+                <button class="action-button edit"><i class="fas fa-edit"></i></button>
+                <button class="action-button delete"><i class="fas fa-trash"></i></button>
+                <button class="action-button view"><i class="fas fa-eye"></i></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Départements Component -->
+  <div class="component-container">
+    <header class="component-header">
+      <h1><i class="fas fa-building"></i> Gestion des Départements</h1>
+      <div class="actions-bar">
+        <div class="search-container">
+          <input type="text" placeholder="Rechercher un département...">
+          <button class="search-button"><i class="fas fa-search"></i></button>
+        </div>
+        <button class="add-button"><i class="fas fa-plus"></i> Ajouter un département</button>
+      </div>
+    </header>
+  
+    <div class="departments-grid">
+      <div class="department-card">
+        <div class="department-header">
+          <div class="department-icon">
+            <i class="fas fa-laptop"></i>
+          </div>
+          <div class="department-actions">
+            <button><i class="fas fa-edit"></i></button>
+            <button><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <div class="department-body">
+          <h3>Informatique</h3>
+          <p>Département des sciences informatiques et technologies</p>
+          <div class="department-head">
+            <div class="head-avatar"></div>
+            <div class="head-info">
+              <span class="title">Chef de département</span>
+              <span class="name">Dr. Mohammed Amine</span>
+            </div>
+          </div>
+        </div>
+        <div class="department-footer">
+          <div class="stat-counter">
+            <div class="counter">
+              <span class="number">3</span>
+              <span class="label">Spécialités</span>
+            </div>
+            <div class="counter">
+              <span class="number">18</span>
+              <span class="label">Enseignants</span>
+            </div>
+            <div class="counter">
+              <span class="number">120</span>
+              <span class="label">Étudiants</span>
+            </div>
+          </div>
+          <button class="view-department-btn">Voir détails</button>
+        </div>
+      </div>
+      
+      <div class="department-card">
+        <div class="department-header">
+          <div class="department-icon">
+            <i class="fas fa-calculator"></i>
+          </div>
+          <div class="department-actions">
+            <button><i class="fas fa-edit"></i></button>
+            <button><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <div class="department-body">
+          <h3>Mathématiques</h3>
+          <p>Département des sciences mathématiques et statistiques</p>
+          <div class="department-head">
+            <div class="head-avatar"></div>
+            <div class="head-info">
+              <span class="title">Chef de département</span>
+              <span class="name">Dr. Laila Najib</span>
+            </div>
+          </div>
+        </div>
+        <div class="department-footer">
+          <div class="stat-counter">
+            <div class="counter">
+              <span class="number">2</span>
+              <span class="label">Spécialités</span>
+            </div>
+            <div class="counter">
+              <span class="number">15</span>
+              <span class="label">Enseignants</span>
+            </div>
+            <div class="counter">
+              <span class="number">95</span>
+              <span class="label">Étudiants</span>
+            </div>
+          </div>
+          <button class="view-department-btn">Voir détails</button>
+        </div>
+      </div>
+      
+      <div class="department-card">
+        <div class="department-header">
+          <div class="department-icon">
+            <i class="fas fa-atom"></i>
+          </div>
+          <div class="department-actions">
+            <button><i class="fas fa-edit"></i></button>
+            <button><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <div class="department-body">
+          <h3>Physique</h3>
+          <p>Département des sciences physiques et énergétiques</p>
+          <div class="department-head">
+            <div class="head-avatar"></div>
+            <div class="head-info">
+              <span class="title">Chef de département</span>
+              <span class="name">Dr. Karim Bennani</span>
+            </div>
+          </div>
+        </div>
+        <div class="department-footer">
+          <div class="stat-counter">
+            <div class="counter">
+              <span class="number">2</span>
+              <span class="label">Spécialités</span>
+            </div>
+            <div class="counter">
+              <span class="number">12</span>
+              <span class="label">Enseignants</span>
+            </div>
+            <div class="counter">
+              <span class="number">78</span>
+              <span class="label">Étudiants</span>
+            </div>
+          </div>
+          <button class="view-department-btn">Voir détails</button>
+        </div>
+      </div>
+      
+      <div class="department-card">
+        <div class="department-header">
+          <div class="department-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <div class="department-actions">
+            <button><i class="fas fa-edit"></i></button>
+            <button><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <div class="department-body">
+          <h3>Économie</h3>
+          <p>Département d'économie et sciences de gestion</p>
+          <div class="department-head">
+            <div class="head-avatar"></div>
+            <div class="head-info">
+              <span class="title">Chef de département</span>
+              <span class="name">Dr. Samira Alaoui</span>
+            </div>
+          </div>
+        </div>
+        <div class="department-footer">
+          <div class="stat-counter">
+            <div class="counter">
+              <span class="number">3</span>
+              <span class="label">Spécialités</span>
+            </div>
+            <div class="counter">
+              <span class="number">14</span>
+              <span class="label">Enseignants</span>
+            </div>
+            <div class="counter">
+              <span class="number">110</span>
+              <span class="label">Étudiants</span>
+            </div>
+          </div>
+          <button class="view-department-btn">Voir détails</button>
+        </div>
+      </div>
+    </div>
+  </div>
