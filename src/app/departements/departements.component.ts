@@ -8,76 +8,40 @@ import { Component, OnInit } from '@angular/core';
 export class DepartementsComponent implements OnInit {
   // Définition des propriétés
   departements = [
-    { 
-      id: 1, 
-      nom: 'Informatique', 
-      description: 'Département des Sciences Informatiques', 
-      couleur: '#ff5e62', 
-      nbProfesseurs: 18,
-      directeur: 'Dr. Sophie Martin',
-      nbCours: 32,
-      nbEtudiants: 450,
-      tauxReussite: 92
+    {
+      id: 1,
+      nom: 'Informatique',
+      description: 'Développement logiciel, réseaux et systèmes d\'information',
+      couleur: '#3498db',
+      nbEtudiants: 215
     },
-    { 
-      id: 2, 
-      nom: 'Mathématiques', 
-      description: 'Département de Mathématiques Appliquées', 
-      couleur: '#2ecc71', 
-      nbProfesseurs: 15,
-      directeur: 'Dr. Thomas Dubois',
-      nbCours: 28,
-      nbEtudiants: 320,
-      tauxReussite: 88
+    {
+      id: 2,
+      nom: 'Gestion',
+      description: 'Management, finance et marketing',
+      couleur: '#2ecc71',
+      nbEtudiants: 180
     },
-    { 
-      id: 3, 
-      nom: 'Physique', 
-      description: 'Département de Physique et Sciences Naturelles', 
-      couleur: '#3498db', 
-      nbProfesseurs: 16,
-      directeur: 'Dr. Jean-Pierre Leclerc',
-      nbCours: 30,
-      nbEtudiants: 380,
-      tauxReussite: 85
-    },
-    { 
-      id: 4, 
-      nom: 'Langues', 
-      description: 'Département des Langues Étrangères', 
-      couleur: '#9b59b6', 
-      nbProfesseurs: 22,
-      directeur: 'Dr. Marie Lambert',
-      nbCours: 45,
-      nbEtudiants: 520,
-      tauxReussite: 94
-    },
-    { 
-      id: 5, 
-      nom: 'Économie', 
-      description: 'Département d\'Économie et Gestion', 
-      couleur: '#f39c12', 
-      nbProfesseurs: 20,
-      directeur: 'Dr. Michel Fournier',
-      nbCours: 38,
-      nbEtudiants: 490,
-      tauxReussite: 90
+    {
+      id: 3,
+      nom: 'Economie',
+      description: 'Macroéconomie, microéconomie et statistiques',
+      couleur: '#e74c3c',
+      nbEtudiants: 165
     }
   ];
 
   selectedDepartement: any = null;
   showAddForm = false;
-  newDepartement = { 
-    nom: '', 
-    description: '', 
-    couleur: '#ff5e62',
-    directeur: '' 
+  newDepartement = {
+    nom: '',
+    description: '',
+    couleur: '#3498db'
   };
 
   constructor() { }
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void { }
 
   // Définition des méthodes
   selectDepartement(departement: any): void {
@@ -96,19 +60,14 @@ export class DepartementsComponent implements OnInit {
       nom: this.newDepartement.nom,
       description: this.newDepartement.description,
       couleur: this.newDepartement.couleur,
-      nbProfesseurs: 0,
-      directeur: this.newDepartement.directeur,
-      nbCours: 0,
-      nbEtudiants: 0,
-      tauxReussite: 0
+      nbEtudiants: 0
     });
 
     // Réinitialiser le formulaire
-    this.newDepartement = { 
-      nom: '', 
-      description: '', 
-      couleur: '#ff5e62',
-      directeur: '' 
+    this.newDepartement = {
+      nom: '',
+      description: '',
+      couleur: '#3498db'
     };
     this.showAddForm = false;
   }

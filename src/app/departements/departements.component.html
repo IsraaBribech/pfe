@@ -1,111 +1,104 @@
 <div class="departements-container">
-    <div class="departements-header">
-      <h1>Gestion des Départements</h1>
-      <button class="btn-add" (click)="toggleAddForm()">
-        <i class="fas fa-plus"></i> Ajouter un département
-      </button>
-    </div>
-  
-    <div class="departements-content">
-      <div class="departements-list">
-        <div class="departement-card" *ngFor="let departement of departements" 
-             [ngClass]="{'selected': selectedDepartement === departement}"
-             [ngStyle]="{'border-left': '5px solid ' + departement.couleur}"
-             (click)="selectDepartement(departement)">
-          <div class="departement-icon" [ngStyle]="{'background-color': departement.couleur}">
-            <i class="fas fa-building"></i>
-          </div>
-          <div class="departement-info">
-            <h3>{{departement.nom}}</h3>
-            <p>{{departement.description}}</p>
-            <span class="departement-professors">
-              <i class="fas fa-chalkboard-teacher"></i> {{departement.nbProfesseurs}} professeurs
-            </span>
-          </div>
+  <div class="departements-header">
+    <h1>Gestion des Départements</h1>
+    <button class="btn-add" (click)="toggleAddForm()">
+      <i class="fas fa-plus"></i> Ajouter un département
+    </button>
+  </div>
+
+  <div class="departements-content">
+    <div class="departements-list">
+      <div class="departement-card" *ngFor="let departement of departements"
+           [ngClass]="{'selected': selectedDepartement === departement}"
+           [ngStyle]="{'border-left': '5px solid ' + departement.couleur}"
+           (click)="selectDepartement(departement)">
+        <div class="departement-icon" [ngStyle]="{'background-color': departement.couleur}">
+          <i class="fas fa-building"></i>
         </div>
-      </div>
-  
-      <div class="departement-detail" *ngIf="selectedDepartement">
-        <div class="detail-header" [ngStyle]="{'background-color': selectedDepartement.couleur}">
-          <h2>{{selectedDepartement.nom}}</h2>
-          <div class="actions">
-            <button class="btn-edit"><i class="fas fa-edit"></i></button>
-            <button class="btn-delete" (click)="deleteDepartement(selectedDepartement.id)">
-              <i class="fas fa-trash"></i>
-            </button>
-          </div>
+        <div class="departement-info">
+          <h3>{{departement.nom}}</h3>
+          <p>{{departement.description}}</p>
+          <span class="departement-students">
+            <i class="fas fa-user-graduate"></i> {{departement.nbEtudiants}} étudiants
+          </span>
         </div>
-        <div class="detail-content">
-          <div class="detail-section">
-            <h3>Informations générales</h3>
-            <div class="info-row">
-              <div class="info-label">Description:</div>
-              <div class="info-value">{{selectedDepartement.description}}</div>
-            </div>
-            <div class="info-row">
-              <div class="info-label">Nombre de professeurs:</div>
-              <div class="info-value">{{selectedDepartement.nbProfesseurs}}</div>
-            </div>
-            <div class="info-row">
-              <div class="info-label">Directeur:</div>
-              <div class="info-value">{{selectedDepartement.directeur}}</div>
-            </div>
-            <div class="info-row">
-              <div class="info-label">Couleur:</div>
-              <div class="color-preview" [ngStyle]="{'background-color': selectedDepartement.couleur}"></div>
-            </div>
-          </div>
-  
-          <div class="detail-section">
-            <h3>Statistiques</h3>
-            <div class="stats-placeholder">
-              <div class="stat-card">
-                <div class="stat-value">{{selectedDepartement.nbCours}}</div>
-                <div class="stat-label">Cours offerts</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-value">{{selectedDepartement.nbEtudiants}}</div>
-                <div class="stat-label">Étudiants</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-value">{{selectedDepartement.tauxReussite}}%</div>
-                <div class="stat-label">Taux de réussite</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-  
-      <div class="departement-placeholder" *ngIf="!selectedDepartement">
-        <i class="fas fa-building"></i>
-        <p>Sélectionnez un département pour voir les détails</p>
       </div>
     </div>
-  
-    <!-- Formulaire d'ajout -->
-    <div class="add-form-overlay" *ngIf="showAddForm">
-      <div class="add-form">
-        <h2>Ajouter un nouveau département</h2>
-        <div class="form-group">
-          <label>Nom</label>
-          <input type="text" [(ngModel)]="newDepartement.nom" placeholder="Ex: Informatique">
+
+    <div class="departement-detail" *ngIf="selectedDepartement">
+      <div class="detail-header" [ngStyle]="{'background-color': selectedDepartement.couleur}">
+        <h2>{{selectedDepartement.nom}}</h2>
+        <div class="actions">
+          <button class="btn-edit"><i class="fas fa-edit"></i></button>
+          <button class="btn-delete" (click)="deleteDepartement(selectedDepartement.id)">
+            <i class="fas fa-trash"></i>
+          </button>
         </div>
-        <div class="form-group">
-          <label>Description</label>
-          <textarea [(ngModel)]="newDepartement.description" placeholder="Description du département"></textarea>
+      </div>
+      <div class="detail-content">
+        <div class="detail-section">
+          <h3>Informations générales</h3>
+          <div class="info-row">
+            <div class="info-label">Description:</div>
+            <div class="info-value">{{selectedDepartement.description}}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Nombre d'étudiants:</div>
+            <div class="info-value">{{selectedDepartement.nbEtudiants}}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Couleur:</div>
+            <div class="color-preview" [ngStyle]="{'background-color': selectedDepartement.couleur}"></div>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Directeur</label>
-          <input type="text" [(ngModel)]="newDepartement.directeur" placeholder="Nom du directeur">
+
+        <div class="detail-section">
+          <h3>Statistiques</h3>
+          <div class="stats-placeholder">
+            <!-- Emplacement pour des statistiques ou graphiques -->
+            <div class="stat-card">
+              <div class="stat-value">82%</div>
+              <div class="stat-label">Taux de réussite</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">18</div>
+              <div class="stat-label">Cours associés</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">6</div>
+              <div class="stat-label">Enseignants</div>
+            </div>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Couleur</label>
-          <input type="color" [(ngModel)]="newDepartement.couleur">
-        </div>
-        <div class="form-actions">
-          <button class="btn-cancel" (click)="toggleAddForm()">Annuler</button>
-          <button class="btn-save" (click)="addDepartement()" [disabled]="!newDepartement.nom">Enregistrer</button>
-        </div>
+      </div>
+    </div>
+
+    <div class="departement-placeholder" *ngIf="!selectedDepartement">
+      <i class="fas fa-building"></i>
+      <p>Sélectionnez un département pour voir les détails</p>
+    </div>
+  </div>
+
+  <!-- Formulaire d'ajout -->
+  <div class="add-form-overlay" *ngIf="showAddForm">
+    <div class="add-form">
+      <h2>Ajouter un nouveau département</h2>
+      <div class="form-group">
+        <label>Nom</label>
+        <input type="text" [(ngModel)]="newDepartement.nom" placeholder="Ex: Mathématiques">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea [(ngModel)]="newDepartement.description" placeholder="Description du département"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Couleur</label>
+        <input type="color" [(ngModel)]="newDepartement.couleur">
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" (click)="toggleAddForm()">Annuler</button>
+        <button class="btn-save" (click)="addDepartement()" [disabled]="!newDepartement.nom">Enregistrer</button>
       </div>
     </div>
   </div>
+</div>
