@@ -1,1 +1,103 @@
-<p>specialites works!</p>
+<div class="specialites-container">
+    <div class="specialites-header">
+      <h1>Gestion des Spécialités</h1>
+      <button class="btn-add" (click)="toggleAddForm()">
+        <i class="fas fa-plus"></i> Ajouter une spécialité
+      </button>
+    </div>
+  
+    <div class="specialites-content">
+      <div class="specialites-list">
+        <div class="specialite-card" *ngFor="let specialite of specialites" 
+             [ngClass]="{'selected': selectedSpecialite === specialite}"
+             [ngStyle]="{'border-left': '5px solid ' + specialite.couleur}"
+             (click)="selectSpecialite(specialite)">
+          <div class="specialite-icon" [ngStyle]="{'background-color': specialite.couleur}">
+            <i class="fas fa-graduation-cap"></i>
+          </div>
+          <div class="specialite-info">
+            <h3>{{specialite.nom}}</h3>
+            <p>{{specialite.description}}</p>
+            <span class="specialite-students">
+              <i class="fas fa-user-graduate"></i> {{specialite.nbEtudiants}} étudiants
+            </span>
+          </div>
+        </div>
+      </div>
+  
+      <div class="specialite-detail" *ngIf="selectedSpecialite">
+        <div class="detail-header" [ngStyle]="{'background-color': selectedSpecialite.couleur}">
+          <h2>{{selectedSpecialite.nom}}</h2>
+          <div class="actions">
+            <button class="btn-edit"><i class="fas fa-edit"></i></button>
+            <button class="btn-delete" (click)="deleteSpecialite(selectedSpecialite.id)">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <div class="detail-content">
+          <div class="detail-section">
+            <h3>Informations générales</h3>
+            <div class="info-row">
+              <div class="info-label">Description:</div>
+              <div class="info-value">{{selectedSpecialite.description}}</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Nombre d'étudiants:</div>
+              <div class="info-value">{{selectedSpecialite.nbEtudiants}}</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Couleur:</div>
+              <div class="color-preview" [ngStyle]="{'background-color': selectedSpecialite.couleur}"></div>
+            </div>
+          </div>
+  
+          <div class="detail-section">
+            <h3>Statistiques</h3>
+            <div class="stats-placeholder">
+              <div class="stat-card">
+                <div class="stat-value">92%</div>
+                <div class="stat-label">Taux d'insertion</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">18</div>
+                <div class="stat-label">Matières associées</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">6</div>
+                <div class="stat-label">Enseignants</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <div class="specialite-placeholder" *ngIf="!selectedSpecialite">
+        <i class="fas fa-graduation-cap"></i>
+        <p>Sélectionnez une spécialité pour voir les détails</p>
+      </div>
+    </div>
+  
+    <!-- Formulaire d'ajout -->
+    <div class="add-form-overlay" *ngIf="showAddForm">
+      <div class="add-form">
+        <h2>Ajouter une nouvelle spécialité</h2>
+        <div class="form-group">
+          <label>Nom</label>
+          <input type="text" [(ngModel)]="newSpecialite.nom" placeholder="Ex: Informatique">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="newSpecialite.description" placeholder="Description de la spécialité"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Couleur</label>
+          <input type="color" [(ngModel)]="newSpecialite.couleur">
+        </div>
+        <div class="form-actions">
+          <button class="btn-cancel" (click)="toggleAddForm()">Annuler</button>
+          <button class="btn-save" (click)="addSpecialite()" [disabled]="!newSpecialite.nom">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
