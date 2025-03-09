@@ -1,0 +1,103 @@
+<div class="regimes-container">
+  <div class="regimes-header">
+    <h1>Gestion des Régimes</h1>
+    <button class="btn-add" (click)="toggleAddForm()">
+      <i class="fas fa-plus"></i> Ajouter un régime
+    </button>
+  </div>
+
+  <div class="regimes-content">
+    <div class="regimes-list">
+      <div class="regime-card" *ngFor="let regime of regimes" 
+           [ngClass]="{'selected': selectedRegime === regime}"
+           [ngStyle]="{'border-left': '5px solid ' + regime.couleur}"
+           (click)="selectRegime(regime)">
+        <div class="regime-icon" [ngStyle]="{'background-color': regime.couleur}">
+          <i class="fas fa-graduation-cap"></i>
+        </div>
+        <div class="regime-info">
+          <h3>{{regime.nom}}</h3>
+          <p>{{regime.description}}</p>
+          <span class="regime-etudiants">
+            <i class="fas fa-user-graduate"></i> {{regime.nbEtudiants}} étudiants
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="regime-detail" *ngIf="selectedRegime">
+      <div class="detail-header" [ngStyle]="{'background-color': selectedRegime.couleur}">
+        <h2>{{selectedRegime.nom}}</h2>
+        <div class="actions">
+          <button class="btn-edit"><i class="fas fa-edit"></i></button>
+          <button class="btn-delete" (click)="deleteRegime(selectedRegime.id)">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+      <div class="detail-content">
+        <div class="detail-section">
+          <h3>Informations générales</h3>
+          <div class="info-row">
+            <div class="info-label">Description:</div>
+            <div class="info-value">{{selectedRegime.description}}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Nombre d'étudiants:</div>
+            <div class="info-value">{{selectedRegime.nbEtudiants}}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Couleur:</div>
+            <div class="color-preview" [ngStyle]="{'background-color': selectedRegime.couleur}"></div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3>Statistiques</h3>
+          <div class="stats-placeholder">
+            <div class="stat-card">
+              <div class="stat-value">82%</div>
+              <div class="stat-label">Taux de réussite</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">18</div>
+              <div class="stat-label">Modules associés</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">7</div>
+              <div class="stat-label">Enseignants</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="regime-placeholder" *ngIf="!selectedRegime">
+      <i class="fas fa-graduation-cap"></i>
+      <p>Sélectionnez un régime pour voir les détails</p>
+    </div>
+  </div>
+
+  <!-- Formulaire d'ajout -->
+  <div class="add-form-overlay" *ngIf="showAddForm">
+    <div class="add-form">
+      <h2>Ajouter un nouveau régime</h2>
+      <div class="form-group">
+        <label>Nom</label>
+        <input type="text" [(ngModel)]="newRegime.nom" placeholder="Ex: Temps plein">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea [(ngModel)]="newRegime.description" placeholder="Description du régime"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Couleur</label>
+        <input type="color" [(ngModel)]="newRegime.couleur">
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" (click)="toggleAddForm()">Annuler</button>
+        <button class="btn-save" (click)="addRegime()" [disabled]="!newRegime.nom">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
