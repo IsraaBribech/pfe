@@ -19,7 +19,15 @@
       <nav class="sidebar-nav">
         <ul>
           <li routerLink="/admin"><i class="fas fa-tachometer-alt"></i> Tableau de bord</li>
-          <li routerLink="/utilisateurs"><i class="fas fa-users"></i> Utilisateurs</li>
+          <li class="has-submenu">
+            <div class="menu-item" (click)="toggleSubmenu($event)">
+              <i class="fas fa-users"></i> Utilisateurs <i class="fas fa-chevron-down submenu-icon"></i>
+            </div>
+            <ul class="submenu">
+              <li routerLink="/enseignants"><i class="fas fa-chalkboard-teacher"></i> Enseignants</li>
+              <li routerLink="/etudiants"><i class="fas fa-user-graduate"></i> Etudiants</li>
+            </ul>
+          </li>
           <li routerLink="/niveaux"><i class="fas fa-layer-group"></i> Niveaux</li>
           <li routerLink="/specialites"><i class="fas fa-graduation-cap"></i> Spécialités</li>
           <li routerLink="/regimes"><i class="fas fa-book"></i> Régimes</li>
@@ -28,7 +36,6 @@
           <li routerLink="/notifications"><i class="fas fa-bell"></i> Envoyer Notification</li>
         </ul>
       </nav>
-      
     </aside>
   
     <!-- Main Content Area -->
@@ -83,11 +90,11 @@
           <h2>Actions rapides</h2>
           <div class="actions-grid">
             <button (click)="showModal('user')">
-              <i class="fas fa-user-plus"></i>
+              <i class="fas fa-chalkboard-teacher"></i>
               Ajouter un Enseignant
             </button>
             <button (click)="showModal('user')">
-              <i class="fas fa-user-plus"></i>
+              <i class="fas fa-user-graduate"></i>
               Ajouter un Etudiant
             </button>
             <button (click)="showModal('level')">

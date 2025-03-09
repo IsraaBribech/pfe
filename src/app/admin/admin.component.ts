@@ -55,6 +55,8 @@ export class AdminComponent implements OnInit {
     this.loadDepartments();
   }
 
+
+  
   loadNiveaux(): void {
     this.niveauService.getNiveaux().subscribe(
       (niveaux: any) => {  // Explicitly typed 'niveaux' as 'any'
@@ -165,6 +167,18 @@ export class AdminComponent implements OnInit {
       panelClass: isError ? ['error-notification'] : ['success-notification']
     });
   }
+
+
+  toggleSubmenu(event: Event) {
+    const target = event.currentTarget as HTMLElement;
+    const parent = target.parentElement!; // Note the ! operator
+    parent.classList.toggle('open');
+    
+    // Prevent navigation when clicking on the parent menu with submenu
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
 
   // Soumission des formulaires
   submitForm(type: string): void {

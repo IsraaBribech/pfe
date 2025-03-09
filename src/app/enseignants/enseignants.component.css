@@ -1,4 +1,4 @@
-.departements-container {
+.enseignants-container {
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -8,7 +8,7 @@
     overflow: hidden;
   }
   
-  .departements-header {
+  .enseignants-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -17,13 +17,13 @@
     color: white;
   }
   
-  .departements-header h1 {
+  .enseignants-header h1 {
     margin: 0;
     font-size: 24px;
     font-weight: 600;
   }
   
-  .departements-header .btn-add {
+  .enseignants-header .btn-add {
     background-color: rgba(255, 255, 255, 0.2);
     color: white;
     border: none;
@@ -37,18 +37,18 @@
     font-weight: 500;
   }
   
-  .departements-header .btn-add:hover {
+  .enseignants-header .btn-add:hover {
     background-color: rgba(255, 255, 255, 0.3);
     transform: translateY(-2px);
   }
   
-  .departements-content {
+  .enseignants-content {
     display: flex;
     flex: 1;
     overflow: hidden;
   }
   
-  .departements-list {
+  .enseignants-list {
     width: 320px;
     overflow-y: auto;
     padding: 20px;
@@ -56,20 +56,20 @@
     border-right: 1px solid #eaecef;
   }
   
-  .departements-list::-webkit-scrollbar {
+  .enseignants-list::-webkit-scrollbar {
     width: 8px;
   }
   
-  .departements-list::-webkit-scrollbar-track {
+  .enseignants-list::-webkit-scrollbar-track {
     background: #f1f1f1;
   }
   
-  .departements-list::-webkit-scrollbar-thumb {
+  .enseignants-list::-webkit-scrollbar-thumb {
     background: #c1c1c1;
     border-radius: 4px;
   }
   
-  .departement-card {
+  .enseignant-card {
     display: flex;
     align-items: center;
     padding: 15px;
@@ -82,17 +82,17 @@
     border-left: 5px solid transparent;
   }
   
-  .departement-card:hover {
+  .enseignant-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
   }
   
-  .departement-card.selected {
+  .enseignant-card.selected {
     background-color: #f1f7ff;
     box-shadow: 0 6px 12px rgba(37, 117, 252, 0.15);
   }
   
-  .departement-card .departement-icon {
+  .enseignant-card .enseignant-icon {
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -104,23 +104,23 @@
     font-size: 20px;
   }
   
-  .departement-card .departement-info {
+  .enseignant-card .enseignant-info {
     flex: 1;
   }
   
-  .departement-card .departement-info h3 {
+  .enseignant-card .enseignant-info h3 {
     margin: 0 0 5px 0;
     font-size: 16px;
     font-weight: 600;
   }
   
-  .departement-card .departement-info p {
+  .enseignant-card .enseignant-info p {
     margin: 0 0 8px 0;
     color: #666;
     font-size: 14px;
   }
   
-  .departement-card .departement-info .departement-students {
+  .enseignant-card .enseignant-info .enseignant-courses {
     display: flex;
     align-items: center;
     gap: 5px;
@@ -128,14 +128,14 @@
     color: #888;
   }
   
-  .departement-detail {
+  .enseignant-detail {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
   }
   
-  .departement-detail .detail-header {
+  .enseignant-detail .detail-header {
     padding: 20px 30px;
     color: white;
     display: flex;
@@ -143,18 +143,18 @@
     align-items: center;
   }
   
-  .departement-detail .detail-header h2 {
+  .enseignant-detail .detail-header h2 {
     margin: 0;
     font-size: 22px;
     font-weight: 600;
   }
   
-  .departement-detail .detail-header .actions {
+  .enseignant-detail .detail-header .actions {
     display: flex;
     gap: 10px;
   }
   
-  .departement-detail .detail-header .actions button {
+  .enseignant-detail .detail-header .actions button {
     background-color: rgba(255, 255, 255, 0.2);
     border: none;
     height: 40px;
@@ -168,28 +168,28 @@
     transition: all 0.2s;
   }
   
-  .departement-detail .detail-header .actions button:hover {
+  .enseignant-detail .detail-header .actions button:hover {
     background-color: rgba(255, 255, 255, 0.3);
   }
   
-  .departement-detail .detail-header .actions button.btn-delete:hover {
+  .enseignant-detail .detail-header .actions button.btn-delete:hover {
     background-color: rgba(231, 76, 60, 0.8);
   }
   
-  .departement-detail .detail-content {
+  .enseignant-detail .detail-content {
     padding: 30px;
     overflow-y: auto;
   }
   
-  .departement-detail .detail-content::-webkit-scrollbar {
+  .enseignant-detail .detail-content::-webkit-scrollbar {
     width: 8px;
   }
   
-  .departement-detail .detail-content::-webkit-scrollbar-track {
+  .enseignant-detail .detail-content::-webkit-scrollbar-track {
     background: #f1f1f1;
   }
   
-  .departement-detail .detail-content::-webkit-scrollbar-thumb {
+  .enseignant-detail .detail-content::-webkit-scrollbar-thumb {
     background: #c1c1c1;
     border-radius: 4px;
   }
@@ -260,7 +260,7 @@
     font-size: 14px;
   }
   
-  .departement-placeholder {
+  .enseignant-placeholder {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -270,12 +270,12 @@
     color: #ccc;
   }
   
-  .departement-placeholder i {
+  .enseignant-placeholder i {
     font-size: 64px;
     margin-bottom: 20px;
   }
   
-  .departement-placeholder p {
+  .enseignant-placeholder p {
     font-size: 18px;
   }
   
@@ -383,11 +383,11 @@
   }
   
   @media (max-width: 992px) {
-    .departements-content {
+    .enseignants-content {
       flex-direction: column;
     }
     
-    .departements-list {
+    .enseignants-list {
       width: 100%;
       max-height: 300px;
       border-right: none;
@@ -400,7 +400,7 @@
   }
   
   @media (max-width: 576px) {
-    .departements-header {
+    .enseignants-header {
       flex-direction: column;
       align-items: flex-start;
       gap: 15px;

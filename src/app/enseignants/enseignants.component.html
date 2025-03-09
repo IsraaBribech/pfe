@@ -1,0 +1,116 @@
+<div class="enseignants-container">
+    <div class="enseignants-header">
+      <h1>Gestion des Enseignants</h1>
+      <button class="btn-add" (click)="toggleAddForm()">
+        <i class="fas fa-plus"></i> Ajouter un enseignant
+      </button>
+    </div>
+  
+    <div class="enseignants-content">
+      <div class="enseignants-list">
+        <div class="enseignant-card" *ngFor="let enseignant of enseignants" 
+             [ngClass]="{'selected': selectedEnseignant === enseignant}"
+             [ngStyle]="{'border-left': '5px solid ' + enseignant.couleur}"
+             (click)="selectEnseignant(enseignant)">
+          <div class="enseignant-icon" [ngStyle]="{'background-color': enseignant.couleur}">
+            <i class="fas fa-user-tie"></i>
+          </div>
+          <div class="enseignant-info">
+            <h3>{{enseignant.prenom}} {{enseignant.nom}}</h3>
+            <p>{{enseignant.specialite}}</p>
+            <span class="enseignant-courses">
+              <i class="fas fa-book"></i> {{enseignant.nbCours}} cours
+            </span>
+          </div>
+        </div>
+      </div>
+  
+      <div class="enseignant-detail" *ngIf="selectedEnseignant">
+        <div class="detail-header" [ngStyle]="{'background-color': selectedEnseignant.couleur}">
+          <h2>{{selectedEnseignant.prenom}} {{selectedEnseignant.nom}}</h2>
+          <div class="actions">
+            <button class="btn-edit"><i class="fas fa-edit"></i></button>
+            <button class="btn-delete" (click)="deleteEnseignant(selectedEnseignant.id)">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <div class="detail-content">
+          <div class="detail-section">
+            <h3>Informations générales</h3>
+            <div class="info-row">
+              <div class="info-label">Nom:</div>
+              <div class="info-value">{{selectedEnseignant.nom}}</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Prénom:</div>
+              <div class="info-value">{{selectedEnseignant.prenom}}</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Spécialité:</div>
+              <div class="info-value">{{selectedEnseignant.specialite}}</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Nombre de cours:</div>
+              <div class="info-value">{{selectedEnseignant.nbCours}}</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Couleur:</div>
+              <div class="color-preview" [ngStyle]="{'background-color': selectedEnseignant.couleur}"></div>
+            </div>
+          </div>
+  
+          <div class="detail-section">
+            <h3>Statistiques</h3>
+            <div class="stats-placeholder">
+              <!-- Emplacement pour des statistiques ou graphiques -->
+              <div class="stat-card">
+                <div class="stat-value">92%</div>
+                <div class="stat-label">Taux de satisfaction</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">185</div>
+                <div class="stat-label">Étudiants encadrés</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">12</div>
+                <div class="stat-label">Années d'expérience</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <div class="enseignant-placeholder" *ngIf="!selectedEnseignant">
+        <i class="fas fa-user-tie"></i>
+        <p>Sélectionnez un enseignant pour voir les détails</p>
+      </div>
+    </div>
+  
+    <!-- Formulaire d'ajout -->
+    <div class="add-form-overlay" *ngIf="showAddForm">
+      <div class="add-form">
+        <h2>Ajouter un nouvel enseignant</h2>
+        <div class="form-group">
+          <label>Nom</label>
+          <input type="text" [(ngModel)]="newEnseignant.nom" placeholder="Ex: Dupont">
+        </div>
+        <div class="form-group">
+          <label>Prénom</label>
+          <input type="text" [(ngModel)]="newEnseignant.prenom" placeholder="Ex: Marie">
+        </div>
+        <div class="form-group">
+          <label>Spécialité</label>
+          <input type="text" [(ngModel)]="newEnseignant.specialite" placeholder="Ex: Mathématiques">
+        </div>
+        <div class="form-group">
+          <label>Couleur</label>
+          <input type="color" [(ngModel)]="newEnseignant.couleur">
+        </div>
+        <div class="form-actions">
+          <button class="btn-cancel" (click)="toggleAddForm()">Annuler</button>
+          <button class="btn-save" (click)="addEnseignant()" [disabled]="!newEnseignant.nom || !newEnseignant.prenom">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>

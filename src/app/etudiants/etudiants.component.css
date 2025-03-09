@@ -1,4 +1,4 @@
-.specialites-container {
+.etudiants-container {
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -8,22 +8,22 @@
     overflow: hidden;
   }
   
-  .specialites-header {
+  .etudiants-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 20px 30px;
-    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    background: linear-gradient(135deg, #11cb8b 0%, #25c0fc 100%);
     color: white;
   }
   
-  .specialites-header h1 {
+  .etudiants-header h1 {
     margin: 0;
     font-size: 24px;
     font-weight: 600;
   }
   
-  .specialites-header .btn-add {
+  .etudiants-header .btn-add {
     background-color: rgba(255, 255, 255, 0.2);
     color: white;
     border: none;
@@ -37,18 +37,18 @@
     font-weight: 500;
   }
   
-  .specialites-header .btn-add:hover {
+  .etudiants-header .btn-add:hover {
     background-color: rgba(255, 255, 255, 0.3);
     transform: translateY(-2px);
   }
   
-  .specialites-content {
+  .etudiants-content {
     display: flex;
     flex: 1;
     overflow: hidden;
   }
   
-  .specialites-list {
+  .etudiants-list {
     width: 320px;
     overflow-y: auto;
     padding: 20px;
@@ -56,20 +56,20 @@
     border-right: 1px solid #eaecef;
   }
   
-  .specialites-list::-webkit-scrollbar {
+  .etudiants-list::-webkit-scrollbar {
     width: 8px;
   }
   
-  .specialites-list::-webkit-scrollbar-track {
+  .etudiants-list::-webkit-scrollbar-track {
     background: #f1f1f1;
   }
   
-  .specialites-list::-webkit-scrollbar-thumb {
+  .etudiants-list::-webkit-scrollbar-thumb {
     background: #c1c1c1;
     border-radius: 4px;
   }
   
-  .specialite-card {
+  .etudiant-card {
     display: flex;
     align-items: center;
     padding: 15px;
@@ -82,17 +82,17 @@
     border-left: 5px solid transparent;
   }
   
-  .specialite-card:hover {
+  .etudiant-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
   }
   
-  .specialite-card.selected {
+  .etudiant-card.selected {
     background-color: #f1f7ff;
-    box-shadow: 0 6px 12px rgba(37, 117, 252, 0.15);
+    box-shadow: 0 6px 12px rgba(37, 192, 252, 0.15);
   }
   
-  .specialite-card .specialite-icon {
+  .etudiant-card .etudiant-icon {
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -104,23 +104,23 @@
     font-size: 20px;
   }
   
-  .specialite-card .specialite-info {
+  .etudiant-card .etudiant-info {
     flex: 1;
   }
   
-  .specialite-card .specialite-info h3 {
+  .etudiant-card .etudiant-info h3 {
     margin: 0 0 5px 0;
     font-size: 16px;
     font-weight: 600;
   }
   
-  .specialite-card .specialite-info p {
+  .etudiant-card .etudiant-info p {
     margin: 0 0 8px 0;
     color: #666;
     font-size: 14px;
   }
   
-  .specialite-card .specialite-info .specialite-students {
+  .etudiant-card .etudiant-info .etudiant-courses {
     display: flex;
     align-items: center;
     gap: 5px;
@@ -128,14 +128,14 @@
     color: #888;
   }
   
-  .specialite-detail {
+  .etudiant-detail {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
   }
   
-  .specialite-detail .detail-header {
+  .etudiant-detail .detail-header {
     padding: 20px 30px;
     color: white;
     display: flex;
@@ -143,18 +143,18 @@
     align-items: center;
   }
   
-  .specialite-detail .detail-header h2 {
+  .etudiant-detail .detail-header h2 {
     margin: 0;
     font-size: 22px;
     font-weight: 600;
   }
   
-  .specialite-detail .detail-header .actions {
+  .etudiant-detail .detail-header .actions {
     display: flex;
     gap: 10px;
   }
   
-  .specialite-detail .detail-header .actions button {
+  .etudiant-detail .detail-header .actions button {
     background-color: rgba(255, 255, 255, 0.2);
     border: none;
     height: 40px;
@@ -168,28 +168,28 @@
     transition: all 0.2s;
   }
   
-  .specialite-detail .detail-header .actions button:hover {
+  .etudiant-detail .detail-header .actions button:hover {
     background-color: rgba(255, 255, 255, 0.3);
   }
   
-  .specialite-detail .detail-header .actions button.btn-delete:hover {
+  .etudiant-detail .detail-header .actions button.btn-delete:hover {
     background-color: rgba(231, 76, 60, 0.8);
   }
   
-  .specialite-detail .detail-content {
+  .etudiant-detail .detail-content {
     padding: 30px;
     overflow-y: auto;
   }
   
-  .specialite-detail .detail-content::-webkit-scrollbar {
+  .etudiant-detail .detail-content::-webkit-scrollbar {
     width: 8px;
   }
   
-  .specialite-detail .detail-content::-webkit-scrollbar-track {
+  .etudiant-detail .detail-content::-webkit-scrollbar-track {
     background: #f1f1f1;
   }
   
-  .specialite-detail .detail-content::-webkit-scrollbar-thumb {
+  .etudiant-detail .detail-content::-webkit-scrollbar-thumb {
     background: #c1c1c1;
     border-radius: 4px;
   }
@@ -260,7 +260,7 @@
     font-size: 14px;
   }
   
-  .specialite-placeholder {
+  .etudiant-placeholder {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -270,12 +270,12 @@
     color: #ccc;
   }
   
-  .specialite-placeholder i {
+  .etudiant-placeholder i {
     font-size: 64px;
     margin-bottom: 20px;
   }
   
-  .specialite-placeholder p {
+  .etudiant-placeholder p {
     font-size: 18px;
   }
   
@@ -332,7 +332,7 @@
   .add-form .form-group input:focus,
   .add-form .form-group textarea:focus {
     outline: none;
-    border-color: #2575fc;
+    border-color: #25c0fc;
   }
   
   .add-form .form-group textarea {
@@ -366,13 +366,13 @@
   }
   
   .add-form .form-actions button.btn-save {
-    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    background: linear-gradient(135deg, #11cb8b 0%, #25c0fc 100%);
     color: white;
   }
   
   .add-form .form-actions button.btn-save:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(37, 117, 252, 0.3);
+    box-shadow: 0 4px 10px rgba(37, 192, 252, 0.3);
   }
   
   .add-form .form-actions button.btn-save:disabled {
@@ -383,11 +383,11 @@
   }
   
   @media (max-width: 992px) {
-    .specialites-content {
+    .etudiants-content {
       flex-direction: column;
     }
     
-    .specialites-list {
+    .etudiants-list {
       width: 100%;
       max-height: 300px;
       border-right: none;
@@ -400,7 +400,7 @@
   }
   
   @media (max-width: 576px) {
-    .specialites-header {
+    .etudiants-header {
       flex-direction: column;
       align-items: flex-start;
       gap: 15px;

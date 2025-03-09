@@ -1,1 +1,134 @@
-<p>cours works!</p>
+<div class="cours-container">
+    <div class="cours-header">
+      <h1>Gestion des Cours</h1>
+      <button class="btn-add" (click)="toggleAddForm()">
+        <i class="fas fa-plus"></i> Ajouter un cours
+      </button>
+    </div>
+  
+    <div class="cours-content">
+      <div class="cours-list">
+        <div class="cours-card" *ngFor="let cours of cours" 
+             [ngClass]="{'selected': selectedCours === cours}"
+             [ngStyle]="{'border-left': '5px solid ' + cours.couleur}"
+             (click)="selectCours(cours)">
+          <div class="cours-icon" [ngStyle]="{'background-color': cours.couleur}">
+            <i class="fas fa-book"></i>
+          </div>
+          <div class="cours-info">
+            <h3>{{cours.titre}}</h3>
+            <p>{{cours.description}}</p>
+            <span class="cours-students">
+              <i class="fas fa-user-graduate"></i> {{cours.nbEtudiants}} étudiants | 
+              <i class="fas fa-layer-group"></i> {{cours.niveau}}
+            </span>
+          </div>
+        </div>
+      </div>
+  
+      <div class="cours-detail" *ngIf="selectedCours">
+        <div class="detail-header" [ngStyle]="{'background-color': selectedCours.couleur}">
+          <h2>{{selectedCours.titre}}</h2>
+          <div class="actions">
+            <button class="btn-edit"><i class="fas fa-edit"></i></button>
+            <button class="btn-delete" (click)="deleteCours(selectedCours.id)">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <div class="detail-content">
+          <div class="detail-section">
+            <h3>Informations générales</h3>
+            <div class="info-row">
+              <div class="info-label">Description:</div>
+              <div class="info-value">{{selectedCours.description}}</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Niveau:</div>
+              <div class="info-value">{{selectedCours.niveau}}</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Enseignant:</div>
+              <div class="info-value">{{selectedCours.enseignant}}</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Crédits ECTS:</div>
+              <div class="info-value">{{selectedCours.credits}}</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Nombre d'étudiants:</div>
+              <div class="info-value">{{selectedCours.nbEtudiants}}</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Couleur:</div>
+              <div class="color-preview" [ngStyle]="{'background-color': selectedCours.couleur}"></div>
+            </div>
+          </div>
+  
+          <div class="detail-section">
+            <h3>Statistiques</h3>
+            <div class="stats-placeholder">
+              <div class="stat-card">
+                <div class="stat-value">78%</div>
+                <div class="stat-label">Taux de réussite</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">12</div>
+                <div class="stat-label">Séances</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Examens</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <div class="cours-placeholder" *ngIf="!selectedCours">
+        <i class="fas fa-book"></i>
+        <p>Sélectionnez un cours pour voir les détails</p>
+      </div>
+    </div>
+  
+    <!-- Formulaire d'ajout -->
+    <div class="add-form-overlay" *ngIf="showAddForm">
+      <div class="add-form">
+        <h2>Ajouter un nouveau cours</h2>
+        <div class="form-group">
+          <label>Titre</label>
+          <input type="text" [(ngModel)]="newCours.titre" placeholder="Ex: Programmation Web">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="newCours.description" placeholder="Description du cours"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Niveau</label>
+          <select [(ngModel)]="newCours.niveau">
+            <option>Licence 1</option>
+            <option>Licence 2</option>
+            <option>Licence 3</option>
+            <option>Master 1</option>
+            <option>Master 2</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Enseignant</label>
+          <input type="text" [(ngModel)]="newCours.enseignant" placeholder="Ex: Dr. Dupont">
+        </div>
+        <div class="form-group">
+          <label>Crédits ECTS</label>
+          <input type="number" [(ngModel)]="newCours.credits" min="1" max="30">
+        </div>
+        <div class="form-group">
+          <label>Couleur</label>
+          <input type="color" [(ngModel)]="newCours.couleur">
+        </div>
+        <div class="form-actions">
+          <button class="btn-cancel" (click)="toggleAddForm()">Annuler</button>
+          <button class="btn-save" (click)="addCours()" [disabled]="!newCours.titre">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -109,6 +109,148 @@
   overflow-y: auto;
 }
 
+
+/* Submenu styles */
+.sidebar-nav ul li.has-submenu {
+  flex-direction: column;
+  padding: 0;
+  cursor: default;
+}
+
+.sidebar-nav ul li.has-submenu .menu-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  width: 100%;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.sidebar-nav ul li.has-submenu .menu-item:hover {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+}
+
+.sidebar-nav ul li.has-submenu .menu-item:hover i {
+  color: var(--primary-color);
+}
+
+.submenu-icon {
+  margin-left: auto;
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-nav ul li.has-submenu.open .submenu-icon {
+  transform: rotate(-180deg);
+}
+
+.submenu {
+  list-style: none;
+  padding: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  opacity: 0;
+}
+
+.sidebar-nav ul li.has-submenu.open .submenu {
+  max-height: 200px; /* Adjust based on your submenu items count */
+  opacity: 1;
+}
+
+.submenu li {
+  padding: 0.5rem 1.5rem 0.5rem 3rem;
+  font-size: 0.85rem;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+}
+
+.submenu li i {
+  margin-right: 0.75rem;
+  width: 20px;
+  color: var(--text-light);
+  transition: var(--transition);
+}
+
+.submenu li:hover {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+}
+
+.submenu li:hover i {
+  color: var(--primary-color);
+}
+
+/* Animation for submenu */
+@keyframes slideDown {
+  0% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.sidebar-nav ul li.has-submenu.open .submenu li {
+  animation: slideDown 0.3s ease forwards;
+}
+
+.sidebar-nav ul li.has-submenu.open .submenu li:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.sidebar-nav ul li.has-submenu.open .submenu li:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+/* Responsive styles for submenu */
+@media (max-width: 991px) {
+  .sidebar-nav ul li.has-submenu .menu-item {
+    padding: 0.75rem;
+    justify-content: center;
+  }
+  
+  .sidebar-nav ul li.has-submenu .menu-item span {
+    display: none;
+  }
+  
+  .submenu-icon {
+    display: none;
+  }
+  
+  .submenu {
+    position: absolute;
+    left: 80px;
+    top: 0;
+    background-color: white;
+    box-shadow: var(--shadow-md);
+    border-radius: 0 10px 10px 0;
+    width: 180px;
+    z-index: 100;
+  }
+  
+  .sidebar-nav ul li.has-submenu {
+    position: relative;
+  }
+  
+  .sidebar-nav ul li.has-submenu:hover .submenu {
+    max-height: 200px;
+    opacity: 1;
+  }
+  
+  .submenu li {
+    padding: 0.75rem 1rem;
+  }
+}
+
+
 .sidebar-nav ul {
   list-style: none;
   padding: 0;

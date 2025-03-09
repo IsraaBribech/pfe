@@ -9,7 +9,6 @@ import { HttpClientModule } from '@angular/common/http';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { DashboardComponent } from './dashboard/dashboard.component';
-import { UtilisateursComponent } from './utilisateurs/utilisateurs.component';
 import { NiveauxComponent } from './niveaux/niveaux.component';
 import { SpecialitesComponent } from './specialites/specialites.component';
 import { RegimesComponent } from './regimes/regimes.component';
@@ -18,18 +17,21 @@ import { CoursComponent } from './cours/cours.component';
 import { NotificationsComponent } from './notifications/notifications.component';
 import { RouterModule } from '@angular/router';
 import { AppRoutingModule  } from './app-routing.module';
+import { EnseignantsComponent } from './enseignants/enseignants.component';
+import { EtudiantsComponent } from './etudiants/etudiants.component';
 @NgModule({
   declarations: [
     AppComponent,
     AdminComponent,
     DashboardComponent,
-    UtilisateursComponent,
     NiveauxComponent,
     SpecialitesComponent,
     RegimesComponent,
     DepartementsComponent,
     CoursComponent,
     NotificationsComponent,
+    EnseignantsComponent,
+    EtudiantsComponent,
     
   ],
   imports: [
