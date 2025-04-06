@@ -1,0 +1,257 @@
+<div class="enseignant-container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">E</div>
+        <span class="logo-text">EduSpace</span>
+      </div>
+      <div class="enseignant-info">
+        <div class="enseignant-avatar">{{ enseignantName[0] }}</div>
+        <div class="enseignant-details">
+          <h3>{{ enseignantName }}</h3>
+          <p>{{ enseignantEmail }}</p>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <ul>
+        <li [routerLink]="['/dashboard']" routerLinkActive="active">
+          <i class="fas fa-home"></i>
+          <span>Tableau de bord</span>
+        </li>
+        <li [routerLink]="['/cour']" routerLinkActive="active">
+          <i class="fas fa-book"></i>
+          <span>Cour</span>
+        </li>
+        <li [routerLink]="['/devoir']" routerLinkActive="active">
+          <i class="fas fa-tasks"></i>
+          <span>Devoir</span>
+        </li>
+        <li [routerLink]="['/quiz']" routerLinkActive="active">
+          <i class="fas fa-question-circle"></i>
+          <span>Quiz</span>
+        </li>
+        <li [routerLink]="['/message']" routerLinkActive="active">
+          <i class="fas fa-envelope"></i>
+          <span>Message</span>
+        </li>
+        <li [routerLink]="['/voeux']" routerLinkActive="active">
+          <i class="fas fa-list-alt"></i>
+          <span>Voeux</span>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="content-header">
+      <div class="header-title">
+        <h1>Gestion des Cours</h1>
+      </div>
+      <div class="header-actions">
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Rechercher un cours..." [(ngModel)]="searchTerm" (input)="filterCours()">
+        </div>
+        <button class="btn-primary" (click)="showModal('cour')">
+          <i class="fas fa-plus"></i> Nouveau cours
+        </button>
+      </div>
+    </div>
+
+    <!-- Onglets des semestres -->
+    <div class="semester-tabs">
+      <div class="tab" [class.active]="activeSemestre === 1" (click)="changeSemestre(1)">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Semestre 1</span>
+      </div>
+      <div class="tab" [class.active]="activeSemestre === 2" (click)="changeSemestre(2)">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Semestre 2</span>
+      </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="filters-container">
+      <div class="filter-group">
+        <label for="filter-departement">Département</label>
+        <select id="filter-departement" [(ngModel)]="filters.departement" (change)="onDepartementChange($event)">
+          <option value="">Tous les départements</option>
+          <option *ngFor="let dept of departements" [value]="dept._id">{{ dept.name }}</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-niveau">Niveau</label>
+        <select id="filter-niveau" [(ngModel)]="filters.niveau" (change)="filterCours()">
+          <option value="">Tous les niveaux</option>
+          <option *ngFor="let niveau of niveaux" [value]="niveau._id">{{ niveau.name }}</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-specialite">Spécialité</label>
+        <select id="filter-specialite" [(ngModel)]="filters.specialite" (change)="filterCours()">
+          <option value="">Toutes les spécialités</option>
+          <option *ngFor="let specialite of filteredSpecialites" [value]="specialite._id">{{ specialite.name }}</option>
+        </select>
+      </div>
+      <button class="btn-secondary" (click)="resetFilters()">
+        <i class="fas fa-redo"></i> Réinitialiser
+      </button>
+    </div>
+
+    <!-- Liste des matières -->
+    <div class="cours-section">
+      <div class="section-header">
+        <h2>Liste des Matières - Semestre {{ activeSemestre }}</h2>
+      </div>
+
+      <!-- Liste des matières -->
+      <div class="matieres-list">
+        <div class="matiere-item" *ngFor="let matiere of filteredCours">
+          <div class="matiere-header" [ngStyle]="{'background-color': getRandomColor(matiere._id)}">
+            <div class="matiere-icon">
+              <i class="fas fa-book"></i>
+            </div>
+          </div>
+          <div class="matiere-content">
+            <h3>{{ matiere.title }}</h3>
+            <div class="matiere-info">
+              <div class="info-row">
+                <div class="info-item">
+                  <i class="fas fa-graduation-cap"></i>
+                  <span>{{ getNiveauName(matiere.niveau) }}</span>
+                </div>
+                <div class="info-item">
+                  <i class="fas fa-building"></i>
+                  <span>{{ getDepartementName(matiere.departement) }}</span>
+                </div>
+              </div>
+              <div class="info-row">
+                <div class="info-item">
+                  <i class="fas fa-bookmark"></i>
+                  <span>{{ getSpecialiteName(matiere.specialite) }}</span>
+                </div>
+                <div class="info-item">
+                  <i class="fas fa-users"></i>
+                  <span>{{ matiere.etudiantsCount || 0 }} étudiants</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="matiere-action">
+            <button class="btn-primary" (click)="showModal('chapitre', matiere)">
+              <i class="fas fa-plus"></i> Ajouter un cours
+            </button>
+          </div>
+        </div>
+
+        <!-- Message si aucune matière trouvée -->
+        <div class="empty-state" *ngIf="filteredCours.length === 0">
+          <i class="fas fa-book-open"></i>
+          <p>Aucune matière trouvée pour les critères sélectionnés</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal d'ajout de cours (matière) -->
+<div class="modal-overlay" *ngIf="activeModal === 'cour'">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2>Ajouter un nouveau cours</h2>
+      <button class="close-button" (click)="hideModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="courForm">
+        <div class="form-group">
+          <label for="cour-title">Nom du cours</label>
+          <input type="text" id="cour-title" formControlName="title" placeholder="Entrez le nom du cours">
+        </div>
+        <div class="form-group">
+          <label for="cour-departement">Département</label>
+          <select id="cour-departement" formControlName="departement" (change)="onDepartementChange($event)">
+            <option value="">Sélectionnez un département</option>
+            <option *ngFor="let dept of departements" [value]="dept._id">{{ dept.name }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="cour-niveau">Niveau</label>
+          <select id="cour-niveau" formControlName="niveau">
+            <option value="">Sélectionnez un niveau</option>
+            <option *ngFor="let niveau of niveaux" [value]="niveau._id">{{ niveau.name }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="cour-specialite">Spécialité</label>
+          <select id="cour-specialite" formControlName="specialite">
+            <option value="">Sélectionnez une spécialité</option>
+            <option *ngFor="let specialite of filteredSpecialites" [value]="specialite._id">{{ specialite.name }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="cour-file">Fichier du cours</label>
+          <input type="file" id="cour-file" #courFileInput (change)="onCourFileChange($event)" class="file-input" hidden>
+          <div class="file-input-wrapper">
+            <span class="file-name">{{ courFile ? courFile.name : 'Aucun fichier sélectionné' }}</span>
+            <button type="button" class="file-button" (click)="courFileInput.click()">Parcourir</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="hideModal()">Annuler</button>
+      <button class="btn-primary" [disabled]="!courForm.valid" (click)="submitCourForm()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal d'ajout de chapitre à une matière -->
+<div class="modal-overlay" *ngIf="activeModal === 'chapitre'">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2>Ajouter un cours - {{ selectedCour?.title }}</h2>
+      <button class="close-button" (click)="hideModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="chapitreForm">
+        <div class="form-group">
+          <label for="titre">Titre du cours *</label>
+          <input type="text" id="titre" formControlName="titre" placeholder="Entrez le titre du cours">
+        </div>
+
+        <div class="form-group">
+          <label for="chapitre">Nom du chapitre *</label>
+          <input type="text" id="chapitre" formControlName="chapitre" placeholder="Entrez le nom du chapitre">
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description du cours *</label>
+          <textarea id="description" formControlName="description" rows="5" placeholder="Entrez une description détaillée du cours"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="fichier">Fichier du cours</label>
+          <input type="file" id="fichier" (change)="onFileChange($event)" class="file-input" #fileInput hidden>
+          <div class="file-input-wrapper">
+            <span class="file-name">{{ chapitreForm.get('fichier')?.value || 'Aucun fichier sélectionné' }}</span>
+            <button type="button" class="file-button" (click)="fileInput.click()">Parcourir</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="hideModal()">Annuler</button>
+      <button type="button" class="btn-primary" [disabled]="!chapitreForm.valid" (click)="submitChapitreForm()">
+        <i class="fas fa-save"></i> Enregistrer le cours
+      </button>
+    </div>
+  </div>
+</div>
+

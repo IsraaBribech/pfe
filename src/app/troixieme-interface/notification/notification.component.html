@@ -1,0 +1,71 @@
+<div class="notification-container">
+  <button class="notification-button" (click)="toggleNotifications()">
+    <i class="fas fa-bell"></i>
+    <span class="notification-badge" *ngIf="getUnreadCount() > 0">{{ getUnreadCount() }}</span>
+  </button>
+
+  <div class="notification-dropdown" *ngIf="showNotifications">
+    <div class="notification-header">
+      <h2>Notifications</h2>
+      <button class="mark-read-button" (click)="markAllAsRead()">
+        <i class="fas fa-check-double"></i> Tout marquer comme lu
+      </button>
+    </div>
+
+    <div class="notification-tabs">
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'all'" 
+        (click)="changeTab('all')"
+      >
+        Toutes
+      </button>
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'unread'" 
+        (click)="changeTab('unread')"
+      >
+        Non lues <span class="count" *ngIf="getUnreadCount() > 0">{{ getUnreadCount() }}</span>
+      </button>
+    </div>
+
+    <div class="notification-list">
+      <div 
+        *ngFor="let notification of getFilteredNotifications()" 
+        class="notification-item" 
+        [class.unread]="!notification.read"
+        (click)="markAsRead(notification)"
+      >
+        <div class="notification-icon" [ngClass]="notification.type">
+          <i class="fas" 
+            [ngClass]="{
+              'fa-info-circle': notification.type === 'info',
+              'fa-envelope': notification.type === 'message',
+              'fa-exclamation-triangle': notification.type === 'warning'
+            }"
+          ></i>
+        </div>
+        <div class="notification-content">
+          <h3>{{ notification.title }}</h3>
+          <p>{{ notification.content }}</p>
+          <span class="notification-time">{{ notification.time }}</span>
+        </div>
+        <div class="notification-status" *ngIf="!notification.read">
+          <span class="status-dot"></span>
+        </div>
+      </div>
+
+      <div *ngIf="getFilteredNotifications().length === 0" class="empty-notifications">
+        <i class="fas fa-bell-slash"></i>
+        <p>Aucune notification</p>
+      </div>
+    </div>
+
+    <div class="notification-footer">
+      <button class="view-all-button" (click)="viewAllNotifications()">
+        Voir toutes les notifications
+      </button>
+    </div>
+  </div>
+</div>
+

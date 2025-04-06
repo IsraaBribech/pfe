@@ -13,6 +13,11 @@ import { NiveauxService } from '../niveaux.service';
   styleUrls: ['./admin.component.css']
 })
 export class AdminComponent implements OnInit {
+filteredSpecialties: any;
+niveaux: any;
+loadSpecialtiesForDepartment(arg0: any) {
+throw new Error('Method not implemented.');
+}
   activeModal: string | null = null;
 
   // Déclaration des formulaires

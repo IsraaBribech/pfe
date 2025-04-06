@@ -1,0 +1,307 @@
+<div class="quiz-container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">E</div>
+        <span class="logo-text">EduSpace</span>
+      </div>
+      <div class="enseignant-info">
+        <div class="enseignant-avatar">{{ enseignantName[0] }}</div>
+        <div class="enseignant-details">
+          <h3>{{ enseignantName }}</h3>
+          <p>{{ enseignantEmail }}</p>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <ul>
+        <li routerLink="/dashboard" routerLinkActive="active">
+          <i class="fas fa-home"></i>
+          <span>Tableau de bord</span>
+        </li>
+        <li routerLink="/cour" routerLinkActive="active">
+          <i class="fas fa-book"></i>
+          <span>Cours</span>
+        </li>
+        <li routerLink="/devoir" routerLinkActive="active">
+          <i class="fas fa-tasks"></i>
+          <span>Devoir</span>
+        </li>
+        <li routerLink="/quiz" routerLinkActive="active">
+          <i class="fas fa-question-circle"></i>
+          <span>Quiz</span>
+        </li>
+        <li routerLink="/message" routerLinkActive="active">
+          <i class="fas fa-envelope"></i>
+          <span>Message</span>
+        </li>
+        <li routerLink="/voeux" routerLinkActive="active">
+          <i class="fas fa-list-alt"></i>
+          <span>Voeux</span>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="content-header">
+      <div class="header-title">
+        <h1>Gestion des Quiz</h1>
+      </div>
+      <div class="header-actions">
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Rechercher un quiz...">
+        </div>
+        <button class="btn-primary" (click)="showModal('quiz')">
+          <i class="fas fa-plus"></i> Nouveau Quiz
+        </button>
+      </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-cards">
+      <div class="stat-card">
+        <div class="stat-icon quizzes">
+          <i class="fas fa-question-circle"></i>
+        </div>
+        <div class="stat-info">
+          <h3>{{ quizStats.total }}</h3>
+          <p>Quiz créés</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon active">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-info">
+          <h3>{{ quizStats.active }}</h3>
+          <p>Quiz actifs</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon completed">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-info">
+          <h3>{{ quizStats.submissions }}</h3>
+          <p>Soumissions</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="filters-container">
+      <div class="filter-group">
+        <label for="filter-departement">Département</label>
+        <select id="filter-departement" [(ngModel)]="filters.departement" (change)="onDepartementChange($event); filterQuizzes()">
+          <option value="">Tous les départements</option>
+          <option *ngFor="let dept of departements" [value]="dept._id">{{ dept.name }}</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-niveau">Niveau</label>
+        <select id="filter-niveau" [(ngModel)]="filters.niveau" (change)="filterQuizzes()">
+          <option value="">Tous les niveaux</option>
+          <option *ngFor="let niveau of niveaux" [value]="niveau._id">{{ niveau.name }}</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-specialite">Spécialité</label>
+        <select id="filter-specialite" [(ngModel)]="filters.specialite" (change)="filterQuizzes()">
+          <option value="">Toutes les spécialités</option>
+          <option *ngFor="let specialite of filteredSpecialites" [value]="specialite._id">{{ specialite.name }}</option>
+        </select>
+      </div>
+      <button class="btn-secondary" (click)="resetFilters()">
+        <i class="fas fa-redo"></i> Réinitialiser
+      </button>
+    </div>
+
+    <!-- Quiz List -->
+    <div class="quiz-list-section">
+      <div class="section-card">
+        <div class="section-header">
+          <h2>Mes Quiz</h2>
+        </div>
+        
+        <div class="quiz-items" *ngIf="filteredQuizzes.length > 0">
+          <div class="quiz-item" *ngFor="let quiz of filteredQuizzes">
+            <div class="quiz-header">
+              <h3>{{ quiz.title }}</h3>
+              <div class="quiz-actions">
+                <button class="action-btn" title="Voir les résultats" (click)="viewQuizResults(quiz._id)">
+                  <i class="fas fa-chart-bar"></i>
+                </button>
+                <button class="action-btn" title="Modifier" (click)="editQuiz(quiz._id)">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn delete" title="Supprimer" (click)="deleteQuiz(quiz._id)">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+            <div class="quiz-info">
+              <div class="info-item">
+                <i class="fas fa-book"></i>
+                <span>{{ quiz.courTitle || 'Aucun cours associé' }}</span>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Créé le {{ formatDate(quiz.createdAt) }}</span>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-users"></i>
+                <span>{{ quiz.submissionsCount || 0 }} soumissions</span>
+              </div>
+            </div>
+            <div class="quiz-footer">
+              <div class="quiz-stats">
+                <div class="stat-item">
+                  <i class="fas fa-question"></i>
+                  <span>{{ quiz.questionsCount || 0 }} questions</span>
+                </div>
+                <div class="stat-item">
+                  <i class="fas fa-clock"></i>
+                  <span>{{ quiz.duration || 0 }} minutes</span>
+                </div>
+              </div>
+              <button class="btn-secondary" (click)="previewQuiz(quiz._id)">
+                <i class="fas fa-eye"></i> Aperçu
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="empty-state" *ngIf="filteredQuizzes.length === 0">
+          <div class="empty-icon">
+            <i class="fas fa-question-circle"></i>
+          </div>
+          <h3>Aucun quiz trouvé</h3>
+          <p>Vous n'avez pas encore créé de quiz. Commencez par en créer un nouveau.</p>
+          <button class="btn-primary" (click)="showModal('quiz')">
+            <i class="fas fa-plus"></i> Créer un quiz
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quiz Modal -->
+<div class="modal-overlay" *ngIf="activeModal === 'quiz'">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2>{{ editMode ? 'Modifier le quiz' : 'Créer un nouveau quiz' }}</h2>
+      <button class="close-button" (click)="hideModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="quizForm">
+        <div class="form-group">
+          <label for="quiz-title">Titre du quiz</label>
+          <input type="text" id="quiz-title" formControlName="title" placeholder="Entrez le titre du quiz">
+        </div>
+        <div class="form-group">
+          <label for="quiz-description">Description</label>
+          <textarea id="quiz-description" formControlName="description" placeholder="Entrez une description du quiz"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="quiz-cour">Cours associé</label>
+          <select id="quiz-cour" formControlName="cour">
+            <option value="">Sélectionnez un cours</option>
+            <option *ngFor="let cour of cours" [value]="cour._id">{{ cour.title }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="quiz-duration">Durée (minutes)</label>
+          <input type="number" id="quiz-duration" formControlName="duration" min="1" max="180">
+        </div>
+        
+        <!-- Questions du quiz -->
+        <div class="questions-section">
+          <div class="section-header">
+            <h3>Questions</h3>
+            <button type="button" class="btn-secondary" (click)="addQuestion()">
+              <i class="fas fa-plus"></i> Ajouter une question
+            </button>
+          </div>
+          
+          <div formArrayName="questions">
+            <div *ngFor="let question of questions.controls; let i = index" [formGroupName]="i" class="question-item">
+              <div class="question-header">
+                <h4>Question {{ i + 1 }}</h4>
+                <button type="button" class="action-btn delete" (click)="removeQuestion(i)">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+              
+              <div class="form-group">
+                <label [for]="'question-text-' + i">Texte de la question</label>
+                <textarea [id]="'question-text-' + i" formControlName="text" placeholder="Entrez le texte de la question"></textarea>
+              </div>
+              
+              <div class="form-group">
+                <label [for]="'question-type-' + i">Type de question</label>
+                <select [id]="'question-type-' + i" formControlName="type">
+                  <option value="single">Choix unique</option>
+                  <option value="multiple">Choix multiple</option>
+                  <option value="text">Réponse textuelle</option>
+                </select>
+              </div>
+              
+              <!-- Options pour les questions à choix -->
+              <div *ngIf="question.get('type')?.value === 'single' || question.get('type')?.value === 'multiple'" formArrayName="options">
+                <div class="options-header">
+                  <h5>Options</h5>
+                  <button type="button" class="btn-sm" (click)="addOption(i)">
+                    <i class="fas fa-plus"></i> Ajouter une option
+                  </button>
+                </div>
+                
+                <div *ngFor="let option of getOptionsFormArray(i).controls; let j = index" [formGroupName]="j" class="option-item">
+                  <div class="option-content">
+                    <input type="text" formControlName="text" placeholder="Texte de l'option">
+                    <div class="option-correct">
+                      <label>
+                        <input type="checkbox" formControlName="isCorrect"> Correcte
+                      </label>
+                    </div>
+                  </div>
+                  <button type="button" class="action-btn delete" (click)="removeOption(i, j)">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Réponse correcte pour les questions textuelles -->
+              <div *ngIf="question.get('type')?.value === 'text'" class="form-group">
+                <label [for]="'question-answer-' + i">Réponse correcte</label>
+                <input type="text" [id]="'question-answer-' + i" formControlName="correctAnswer" placeholder="Entrez la réponse correcte">
+              </div>
+              
+              <div class="form-group">
+                <label [for]="'question-points-' + i">Points</label>
+                <input type="number" [id]="'question-points-' + i" formControlName="points" min="1" max="100">
+              </div>
+            </div>
+          </div>
+          
+          <div class="empty-questions" *ngIf="questions.length === 0">
+            <p>Aucune question ajoutée. Cliquez sur "Ajouter une question" pour commencer.</p>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="hideModal()">Annuler</button>
+      <button class="btn-primary" [disabled]="!quizForm.valid || questions.length === 0" (click)="submitQuiz()">
+        {{ editMode ? 'Mettre à jour' : 'Créer' }}
+      </button>
+    </div>
+  </div>
+</div>
+

@@ -1,10 +1,12 @@
 // stats.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
 
 const API_URL = 'http://localhost:5000/api';
 
+import { Observable, of } from 'rxjs';
+
+// function removed
 export interface Stats {
   users: StatItem;
   specialties: StatItem;
@@ -61,3 +63,5 @@ export class StatsService {
     return this.http.get<Activity[]>(`${API_URL}/activities`);
   }
 }
+
+// function removed

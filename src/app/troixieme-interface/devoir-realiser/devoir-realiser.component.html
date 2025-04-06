@@ -1,0 +1,401 @@
+<div class="enseignant-container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <img src="assets/images/isg.png" alt="Logo ISG EduLink" class="logo">
+        <span class="logo-text">ISG EduLink</span>
+      </div>
+      <!-- Bouton de profil modifié -->
+      <button class="profile-button" routerLink="/troixieme-interface/eduprofil">
+        <div class="enseignant-avatar">{{ etudiantName[0] }}</div>
+        <div class="enseignant-details">
+          <h3>{{ etudiantName }}</h3>
+          <p>{{ etudiantEmail }}</p>
+        </div>
+      </button>
+    </div>
+    <nav class="sidebar-nav">
+      <ul>
+        <li routerLink="/troixieme-interface" routerLinkActive="active">
+          <i class="fas fa-home"></i>
+          <span>Tableau de bord</span>
+        </li>
+        <li routerLink="/troixieme-interface/cour-suivie" routerLinkActive="active">
+          <i class="fas fa-book"></i>
+          <span>Mes cours</span>
+        </li>
+        <li routerLink="/troixieme-interface/devoir-realiser" routerLinkActive="active">
+          <i class="fas fa-tasks"></i>
+          <span>Mes devoirs</span>
+        </li>
+        <li routerLink="/troixieme-interface/quiz-repond" routerLinkActive="active">
+          <i class="fas fa-question-circle"></i>
+          <span>Mes quiz</span>
+        </li>
+        <li routerLink="/troixieme-interface/message-envoyer" routerLinkActive="active">
+          <i class="fas fa-envelope"></i>
+          <span>Forum de discussion</span>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="content-header">
+      <div class="header-title">
+        <h1>Mes devoirs</h1>
+      </div>
+      <div class="header-actions">
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Rechercher un devoir...">
+        </div>
+        <app-notification></app-notification>
+      </div>
+
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="devoirs-container">
+      <!-- Si aucune matière n'est sélectionnée, afficher la liste des matières -->
+      <div *ngIf="!selectedMatiere" class="matieres-section">
+        <!-- Onglets des semestres -->
+        <div class="semester-tabs">
+          <div class="tab" [class.active]="activeSemester === 'semestre1'" (click)="changeSemester('semestre1')">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Semestre 1</span>
+          </div>
+          <div class="tab" [class.active]="activeSemester === 'semestre2'" (click)="changeSemester('semestre2')">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Semestre 2</span>
+          </div>
+        </div>
+        
+        <!-- Matières du Semestre 1 -->
+        <div class="semester-content" *ngIf="activeSemester === 'semestre1'">
+          <div class="matieres-grid">
+            <div class="matiere-card" *ngFor="let matiere of matieresSemestre1" (click)="selectMatiere(matiere)">
+              <div class="matiere-header" [style.background-color]="matiere.couleur">
+                <div class="matiere-icon">
+                  <i class="fas" [class]="matiere.icon"></i>
+                </div>
+              </div>
+              <div class="matiere-body">
+                <h3>{{ matiere.nom }}</h3>
+                <div class="matiere-info">
+                  <div class="info-item">
+                    <i class="fas fa-user-tie"></i>
+                    <span>{{ matiere.enseignant }}</span>
+                  </div>
+                  <div class="info-item">
+                    <i class="fas fa-building"></i>
+                    <span>{{ matiere.departement }}</span>
+                  </div>
+                  <div class="info-row">
+                    <div class="info-col">
+                      <span class="info-label">Crédits</span>
+                      <span class="info-value">{{ matiere.credits }}</span>
+                    </div>
+                    <div class="info-col">
+                      <span class="info-label">Heures</span>
+                      <span class="info-value">{{ matiere.heures }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="devoirs-count">
+                  <span class="badge" [class.badge-warning]="matiere.devoirs.some(isCloseToDeadline)" [class.badge-danger]="matiere.devoirs.some(isLate)">
+                    {{ matiere.devoirs.length }} devoir(s)
+                  </span>
+                </div>
+              </div>
+              <div class="matiere-footer">
+                <button class="btn-outline">
+                  <i class="fas fa-eye"></i> Voir les devoirs
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Matières du Semestre 2 -->
+        <div class="semester-content" *ngIf="activeSemester === 'semestre2'">
+          <div class="matieres-grid">
+            <div class="matiere-card" *ngFor="let matiere of matieresSemestre2" (click)="selectMatiere(matiere)">
+              <div class="matiere-header" [style.background-color]="matiere.couleur">
+                <div class="matiere-icon">
+                  <i class="fas" [class]="matiere.icon"></i>
+                </div>
+              </div>
+              <div class="matiere-body">
+                <h3>{{ matiere.nom }}</h3>
+                <div class="matiere-info">
+                  <div class="info-item">
+                    <i class="fas fa-user-tie"></i>
+                    <span>{{ matiere.enseignant }}</span>
+                  </div>
+                  <div class="info-item">
+                    <i class="fas fa-building"></i>
+                    <span>{{ matiere.departement }}</span>
+                  </div>
+                  <div class="info-row">
+                    <div class="info-col">
+                      <span class="info-label">Crédits</span>
+                      <span class="info-value">{{ matiere.credits }}</span>
+                    </div>
+                    <div class="info-col">
+                      <span class="info-label">Heures</span>
+                      <span class="info-value">{{ matiere.heures }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="devoirs-count">
+                  <span class="badge" [class.badge-warning]="matiere.devoirs.some(isCloseToDeadline)" [class.badge-danger]="matiere.devoirs.some(isLate)">
+                    {{ matiere.devoirs.length }} devoir(s)
+                  </span>
+                </div>
+              </div>
+              <div class="matiere-footer">
+                <button class="btn-outline">
+                  <i class="fas fa-eye"></i> Voir les devoirs
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Si une matière est sélectionnée mais pas de devoir, afficher la liste des devoirs -->
+      <div *ngIf="selectedMatiere && !selectedDevoir" class="devoirs-section">
+        <div class="section-header">
+          <div class="back-button" (click)="backToMatieres()">
+            <i class="fas fa-arrow-left"></i>
+            <span>Retour aux matières</span>
+          </div>
+          <h2>{{ selectedMatiere.nom }}</h2>
+        </div>
+
+        <div class="matiere-details">
+          <div class="matiere-info-card" [style.border-left-color]="selectedMatiere.couleur">
+            <div class="matiere-info-header">
+              <div class="matiere-icon-large" [style.background-color]="selectedMatiere.couleur">
+                <i class="fas" [class]="selectedMatiere.icon"></i>
+              </div>
+              <div class="matiere-info-content">
+                <h3>{{ selectedMatiere.nom }}</h3>
+                <div class="matiere-meta">
+                  <div class="meta-item">
+                    <i class="fas fa-user-tie"></i>
+                    <span>{{ selectedMatiere.enseignant }}</span>
+                  </div>
+                  <div class="meta-item">
+                    <i class="fas fa-building"></i>
+                    <span>{{ selectedMatiere.departement }}</span>
+                  </div>
+                  <div class="meta-item">
+                    <i class="fas fa-clock"></i>
+                    <span>{{ selectedMatiere.heures }} heures</span>
+                  </div>
+                  <div class="meta-item">
+                    <i class="fas fa-award"></i>
+                    <span>{{ selectedMatiere.credits }} crédits</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="devoirs-list">
+          <h3 class="devoirs-title">Devoirs à réaliser</h3>
+          
+          <div class="devoir-card" *ngFor="let devoir of selectedMatiere.devoirs" (click)="selectDevoir(devoir)">
+            <div class="devoir-header" [ngClass]="{'devoir-soumis': devoir.soumis, 'devoir-retard': isLate(devoir), 'devoir-proche': isCloseToDeadline(devoir)}">
+              <h4>{{ devoir.titre }}</h4>
+              <div class="devoir-status">
+                <span *ngIf="devoir.soumis" class="status-badge status-soumis">
+                  <i class="fas fa-check-circle"></i> Soumis
+                </span>
+                <span *ngIf="!devoir.soumis && isLate(devoir)" class="status-badge status-retard">
+                  <i class="fas fa-exclamation-circle"></i> En retard
+                </span>
+                <span *ngIf="!devoir.soumis && isCloseToDeadline(devoir)" class="status-badge status-proche">
+                  <i class="fas fa-clock"></i> Bientôt dû
+                </span>
+                <span *ngIf="!devoir.soumis && !isLate(devoir) && !isCloseToDeadline(devoir)" class="status-badge status-actif">
+                  <i class="fas fa-hourglass-half"></i> À faire
+                </span>
+              </div>
+            </div>
+            <div class="devoir-body">
+              <p>{{ devoir.description }}</p>
+              <div class="devoir-meta">
+                <div class="meta-item">
+                  <i class="fas fa-calendar-alt"></i>
+                  <span>Publié le {{ formatDate(devoir.dateCreation) }}</span>
+                </div>
+                <div class="meta-item">
+                  <i class="fas fa-calendar-check"></i>
+                  <span>Date limite: {{ formatDate(devoir.dateLimite) }}</span>
+                </div>
+                <div class="meta-item" *ngIf="!devoir.soumis && !isLate(devoir)">
+                  <i class="fas fa-hourglass-half"></i>
+                  <span>{{ getJoursRestants(devoir.dateLimite) }} jour(s) restant(s)</span>
+                </div>
+                <div class="meta-item" *ngIf="devoir.soumis">
+                  <i class="fas fa-paper-plane"></i>
+                  <span>Soumis le {{ formatDate(devoir.dateSoumission!) }}</span>
+                </div>
+                <div class="meta-item" *ngIf="devoir.note">
+                  <i class="fas fa-star"></i>
+                  <span>Note: {{ devoir.note }}/20</span>
+                </div>
+              </div>
+            </div>
+            <div class="devoir-footer">
+              <a href="{{ devoir.fichierConsigne }}" target="_blank" class="btn-download">
+                <i class="fas fa-download"></i> Télécharger la consigne
+              </a>
+              <button class="btn-submit" [disabled]="devoir.soumis">
+                <i class="fas fa-paper-plane"></i> {{ devoir.soumis ? 'Déjà soumis' : 'Soumettre' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Si un devoir est sélectionné, afficher le formulaire de soumission -->
+      <div *ngIf="selectedDevoir" class="soumission-section">
+        <div class="section-header">
+          <div class="back-button" (click)="backToDevoirs()">
+            <i class="fas fa-arrow-left"></i>
+            <span>Retour aux devoirs</span>
+          </div>
+          <h2>{{ selectedDevoir.titre }}</h2>
+        </div>
+
+        <div class="devoir-details">
+          <div class="devoir-info-card" [ngClass]="{'devoir-soumis': selectedDevoir.soumis, 'devoir-retard': isLate(selectedDevoir), 'devoir-proche': isCloseToDeadline(selectedDevoir)}">
+            <div class="devoir-info-header">
+              <h3>{{ selectedDevoir.titre }}</h3>
+              <div class="devoir-status">
+                <span *ngIf="selectedDevoir.soumis" class="status-badge status-soumis">
+                  <i class="fas fa-check-circle"></i> Soumis
+                </span>
+                <span *ngIf="!selectedDevoir.soumis && isLate(selectedDevoir)" class="status-badge status-retard">
+                  <i class="fas fa-exclamation-circle"></i> En retard
+                </span>
+                <span *ngIf="!selectedDevoir.soumis && isCloseToDeadline(selectedDevoir)" class="status-badge status-proche">
+                  <i class="fas fa-clock"></i> Bientôt dû
+                </span>
+                <span *ngIf="!selectedDevoir.soumis && !isLate(selectedDevoir) && !isCloseToDeadline(selectedDevoir)" class="status-badge status-actif">
+                  <i class="fas fa-hourglass-half"></i> À faire
+                </span>
+              </div>
+            </div>
+            <div class="devoir-info-body">
+              <p>{{ selectedDevoir.description }}</p>
+              <div class="devoir-meta">
+                <div class="meta-item">
+                  <i class="fas fa-calendar-alt"></i>
+                  <span>Publié le {{ formatDate(selectedDevoir.dateCreation) }}</span>
+                </div>
+                <div class="meta-item">
+                  <i class="fas fa-calendar-check"></i>
+                  <span>Date limite: {{ formatDate(selectedDevoir.dateLimite) }}</span>
+                </div>
+                <div class="meta-item" *ngIf="!selectedDevoir.soumis && !isLate(selectedDevoir)">
+                  <i class="fas fa-hourglass-half"></i>
+                  <span>{{ getJoursRestants(selectedDevoir.dateLimite) }} jour(s) restant(s)</span>
+                </div>
+                <div class="meta-item" *ngIf="selectedDevoir.soumis">
+                  <i class="fas fa-paper-plane"></i>
+                  <span>Soumis le {{ formatDate(selectedDevoir.dateSoumission!) }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="devoir-info-footer">
+              <a href="{{ selectedDevoir.fichierConsigne }}" target="_blank" class="btn-download">
+                <i class="fas fa-download"></i> Télécharger la consigne
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formulaire de soumission -->
+        <div class="soumission-form" *ngIf="!selectedDevoir.soumis">
+          <h3 class="soumission-title">Soumettre votre devoir</h3>
+          
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" [value]="etudiantEmail" readonly>
+          </div>
+          
+          <div class="form-group">
+            <label for="fichier">Fichier (PDF ou image)</label>
+            <div class="file-upload">
+              <input type="file" id="fichier" (change)="onFileSelected($event)" accept=".pdf,image/*">
+              <div class="file-upload-label">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span>{{ fichierAEnvoyer ? fichierAEnvoyer.name : 'Choisir un fichier' }}</span>
+              </div>
+            </div>
+            <small class="file-info">Formats acceptés: PDF, JPG, PNG. Taille maximale: 10 Mo</small>
+          </div>
+          
+          <div class="form-actions">
+            <button class="btn-cancel" (click)="backToDevoirs()">Annuler</button>
+            <button class="btn-submit" [disabled]="!fichierAEnvoyer || isSubmitting" (click)="soumettreDevoir()">
+              <i class="fas" [ngClass]="isSubmitting ? 'fa-spinner fa-spin' : 'fa-paper-plane'"></i>
+              {{ isSubmitting ? 'Envoi en cours...' : 'Soumettre le devoir' }}
+            </button>
+          </div>
+          
+          <div class="confirmation-message" *ngIf="confirmationMessage">
+            <i class="fas fa-check-circle"></i>
+            <span>{{ confirmationMessage }}</span>
+          </div>
+        </div>
+
+        <!-- Détails de la soumission -->
+        <div class="soumission-details" *ngIf="selectedDevoir.soumis">
+          <h3 class="soumission-title">Détails de votre soumission</h3>
+          
+          <div class="soumission-info">
+            <div class="info-group">
+              <label>Date de soumission</label>
+              <p>{{ formatDate(selectedDevoir.dateSoumission!) }}</p>
+            </div>
+            
+            <div class="info-group">
+              <label>Fichier soumis</label>
+              <div class="fichier-soumis">
+                <i class="fas fa-file-pdf"></i>
+                <span>Devoir_{{ selectedMatiere ? replaceSpaces(selectedMatiere.nom) : '' }}_{{ selectedDevoir ? replaceSpaces(selectedDevoir.titre) : '' }}.pdf</span>
+                <a href="{{ selectedDevoir.fichierSoumis }}" target="_blank" class="btn-view">
+                  <i class="fas fa-eye"></i> Voir
+                </a>
+              </div>
+            </div>
+            
+            <div class="info-group" *ngIf="selectedDevoir.note">
+              <label>Note</label>
+              <div class="note-display">
+                <span class="note">{{ selectedDevoir.note }}/20</span>
+                <div class="note-bar">
+                  <div class="note-fill" [style.width.%]="selectedDevoir.note * 5"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="info-group" *ngIf="selectedDevoir.commentaire">
+              <label>Commentaire de l'enseignant</label>
+              <p class="commentaire">{{ selectedDevoir.commentaire }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
