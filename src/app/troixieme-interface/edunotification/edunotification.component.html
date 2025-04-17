@@ -1,0 +1,192 @@
+<div class="alert-container">
+  <div class="alert-header">
+    <div class="header-title">
+      <h1>Centre d'alertes</h1>
+      <p>Suivez les mises à jour de vos cours, devoirs et quiz</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-mark-all" (click)="markAllAsRead()">
+        <i class="fas fa-check-double"></i>
+        Tout marquer comme lu
+      </button>
+      <div class="alert-filter">
+        <select [(ngModel)]="selectedFilter" (change)="applyFilter()">
+          <option value="all">Toutes les alertes</option>
+          <option value="unread">Non lues</option>
+          <option value="cours">Cours</option>
+          <option value="devoir">Devoirs</option>
+          <option value="quiz">Quiz</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistiques des alertes -->
+  <div class="alert-stats">
+    <div class="stat-card cours">
+      <div class="stat-number">{{ getTypeCount('cours') }}</div>
+      <div class="stat-label">COURS</div>
+    </div>
+    <div class="stat-card devoir">
+      <div class="stat-number">{{ getTypeCount('devoir') }}</div>
+      <div class="stat-label">DEVOIRS</div>
+    </div>
+    <div class="stat-card quiz">
+      <div class="stat-number">{{ getTypeCount('quiz') }}</div>
+      <div class="stat-label">QUIZ</div>
+    </div>
+    <div class="stat-card unread">
+      <div class="stat-number">{{ getUnreadCount() }}</div>
+      <div class="stat-label">NON LUES</div>
+    </div>
+  </div>
+
+  <!-- Nouvelles alertes -->
+  <div class="alert-section" *ngIf="hasUnreadAlerts()">
+    <div class="section-header">
+      <h2><i class="fas fa-bell"></i> Nouvelles alertes</h2>
+      <span class="alert-count">{{ getUnreadCount() }}</span>
+    </div>
+    
+    <div class="alert-list">
+      <div class="alert-card" *ngFor="let alert of getFilteredAlerts(true)" 
+           [ngClass]="[alert.type, !alert.read ? 'unread' : '']"
+           (click)="markAsRead(alert)">
+        <div class="alert-icon" [ngClass]="alert.type">
+          <i [class]="'fas ' + getAlertTypeIcon(alert.type)"></i>
+        </div>
+        <div class="alert-details">
+          <div class="alert-title">
+            <h3>{{ alert.title }}</h3>
+            <span class="alert-time">{{ formatTimeAgo(alert.date) }}</span>
+          </div>
+          <p class="alert-message">{{ alert.message }}</p>
+          <div class="alert-meta">
+            <span class="alert-course">
+              <i class="fas fa-book"></i> {{ alert.course }}
+            </span>
+            <span class="alert-teacher">
+              <i class="fas fa-user-tie"></i> {{ alert.teacher }}
+            </span>
+          </div>
+          <div class="alert-actions">
+            <button class="btn-action" (click)="viewDetails(alert, $event)">
+              <i class="fas fa-eye"></i> Voir détails
+            </button>
+            <button class="btn-action devoir" *ngIf="alert.type === 'devoir'" (click)="submitAssignment(alert, $event)">
+              <i class="fas fa-upload"></i> Soumettre
+            </button>
+            <button class="btn-action quiz" *ngIf="alert.type === 'quiz'" (click)="startQuiz(alert, $event)">
+              <i class="fas fa-play"></i> Commencer
+            </button>
+          </div>
+        </div>
+        <div class="alert-status" *ngIf="!alert.read">
+          <span class="status-indicator"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alertes précédentes -->
+  <div class="alert-section">
+    <div class="section-header">
+      <h2><i class="fas fa-history"></i> Alertes précédentes</h2>
+      <span class="alert-count">{{ getReadCount() }}</span>
+    </div>
+    
+    <div class="alert-list">
+      <div class="alert-card" *ngFor="let alert of getFilteredAlerts(false)" 
+           [ngClass]="[alert.type]"
+           (click)="viewDetails(alert)">
+        <div class="alert-icon" [ngClass]="alert.type">
+          <i [class]="'fas ' + getAlertTypeIcon(alert.type)"></i>
+        </div>
+        <div class="alert-details">
+          <div class="alert-title">
+            <h3>{{ alert.title }}</h3>
+            <span class="alert-time">{{ formatTimeAgo(alert.date) }}</span>
+          </div>
+          <p class="alert-message">{{ alert.message }}</p>
+          <div class="alert-meta">
+            <span class="alert-course">
+              <i class="fas fa-book"></i> {{ alert.course }}
+            </span>
+            <span class="alert-teacher">
+              <i class="fas fa-user-tie"></i> {{ alert.teacher }}
+            </span>
+          </div>
+          <div class="alert-actions">
+            <button class="btn-action" (click)="viewDetails(alert, $event)">
+              <i class="fas fa-eye"></i> Voir détails
+            </button>
+            <button class="btn-action devoir" *ngIf="alert.type === 'devoir'" (click)="submitAssignment(alert, $event)">
+              <i class="fas fa-upload"></i> Soumettre
+            </button>
+            <button class="btn-action quiz" *ngIf="alert.type === 'quiz'" (click)="startQuiz(alert, $event)">
+              <i class="fas fa-play"></i> Commencer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aucune alerte -->
+  <div class="empty-state" *ngIf="filteredAlerts.length === 0">
+    <div class="empty-icon">
+      <i class="fas fa-bell-slash"></i>
+    </div>
+    <h3>Aucune alerte</h3>
+    <p>Vous n'avez aucune alerte pour le moment.</p>
+  </div>
+</div>
+
+<!-- Modal de détails d'alerte -->
+<div class="alert-modal" *ngIf="selectedAlert" (click)="closeModal($event)">
+  <div class="modal-content">
+    <div class="modal-header" [ngClass]="selectedAlert.type">
+      <h2>{{ selectedAlert.title }}</h2>
+      <button class="close-button" (click)="closeModal($event)">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="alert-info">
+        <div class="info-item">
+          <span class="label">Cours</span>
+          <span class="value">{{ selectedAlert.course }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Enseignant</span>
+          <span class="value">{{ selectedAlert.teacher }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Date</span>
+          <span class="value">{{ formatDate(selectedAlert.date) }}</span>
+        </div>
+        <div class="info-item" *ngIf="selectedAlert.dueDate">
+          <span class="label">Date limite</span>
+          <span class="value">{{ formatDate(selectedAlert.dueDate) }}</span>
+        </div>
+      </div>
+      
+      <div class="alert-description">
+        <h3>Description</h3>
+        <p>{{ selectedAlert.description || selectedAlert.message }}</p>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="btn-primary cours" *ngIf="selectedAlert.type === 'cours'" (click)="viewCourse(selectedAlert)">
+          <i class="fas fa-book"></i> Accéder au cours
+        </button>
+        <button class="btn-primary devoir" *ngIf="selectedAlert.type === 'devoir'" (click)="submitAssignment(selectedAlert)">
+          <i class="fas fa-upload"></i> Soumettre le devoir
+        </button>
+        <button class="btn-primary quiz" *ngIf="selectedAlert.type === 'quiz'" (click)="startQuiz(selectedAlert)">
+          <i class="fas fa-play"></i> Commencer le quiz
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

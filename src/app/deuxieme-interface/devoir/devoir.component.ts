@@ -1,758 +1,573 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, type OnInit, ViewChild, type ElementRef, HostListener } from "@angular/core"
+import { FormBuilder, type FormGroup, Validators } from "@angular/forms"
+import { Router } from "@angular/router"
 
-interface Devoir {
-  _id: string;
-  title: string;
-  description: string;
-  cour: string;
-  departement: string;
-  niveau: string;
-  specialite: string;
-  dueDate: Date;
-  createdAt: Date;
-  assignedCount?: number;
-  submissionsCount?: number;
-  submissions?: any[];
-  etudiants?: any[];
-  file?: string;
-  fileName?: string;
+interface Student {
+  id: string
+  name: string
+  group: string
+  hasResponded: boolean
+  submissionDate?: Date
+  score?: number
+  file?: string
+  fileName?: string
+  feedback?: string
 }
 
-interface Submission {
-  _id: string;
-  devoirId: string;
-  etudiantId: string;
-  etudiantName: string;
-  submittedAt: Date;
-  file?: string;
-  fileName?: string;
-  comment?: string;
-  evaluated: boolean;
-  note?: number;
-  feedback?: string;
+interface Devoir {
+  id: string
+  title: string
+  description: string
+  subject: string
+  type: "TD" | "TP" | "Cours" // Type de devoir
+  createdAt: Date
+  dueDate: Date
+  isActive: boolean
+  file?: string
+  fileName?: string
+  students?: Student[]
+  responseCount?: number
+}
+
+// Interface pour les matières
+interface Matiere {
+  id: string;
+  nom: string;
+  niveau: string;
+  type: "Cours" | "TD" | "TP";
+}
+
+// Ajouter l'interface Notification
+interface Notification {
+  id: number
+  sender: string
+  message: string
+  time: string
+  read: boolean
+  avatar?: string
 }
 
 @Component({
-  selector: 'app-devoir',
-  templateUrl: './devoir.component.html',
-  styleUrls: ['./devoir.component.css']
+  selector: "app-devoir",
+  templateUrl: "./devoir.component.html",
+  styleUrls: ["./devoir.component.css"],
 })
 export class DevoirComponent implements OnInit {
-  // Teacher Information
-  id = 'T123';
-  enseignantName = 'Israa Bribech';
-  enseignantEmail = 'israabribech2002@gmail.com';
+  // Informations de l'enseignant
+  enseignantName = "Israa Bribech"
+  enseignantEmail = "israabribech2002@gmail.com"
 
-  // Statistics
-  devoirsStats = { 
-    total: 0,
-    active: 0,
-    submissions: 0
-  };
-  activeCount = 0;
-  submissionsCount = 0;
+  // États des modales
+  showDevoirModal = false
+  showStudentModal = false
+  showResponseModal = false
+  showPdfPreviewModal = false
+  editMode = false
 
-  // Devoirs
-  devoirs: Devoir[] = [];
-  filteredDevoirs: Devoir[] = [];
-  selectedDevoir: Devoir | null = null;
+  // Données
+  devoirs: Devoir[] = []
+  filteredDevoirs: Devoir[] = []
+  selectedDevoir: Devoir | null = null
+  selectedStudent: Student | null = null
+  previewFile: string | null = null
+  previewFileName: string | null = null
 
-  // Cours
-  cours: any[] = [];
-  filteredCours: any[] = [];
+  // Filtres
+  searchTerm = ""
+  subjectFilter = ""
+  typeFilter = ""
 
-  // Départements, Niveaux et Spécialités
-  departements: any[] = [];
-  niveaux: any[] = [];
-  specialites: any[] = [];
-  filteredSpecialites: any[] = [];
-  formFilteredSpecialites: any[] = [];
+  // Propriétés pour les sous-menus
+  showCourSubmenu = false
+  showSemestreSubmenu: { [key: number]: boolean } = { 1: false, 2: false }
+  
+  // Matières pour les semestres
+  matieresSemestre1: Matiere[] = [
+    { id: "m1", nom: "Programmation Web", niveau: "L3", type: "Cours" },
+    { id: "m2", nom: "Programmation Web", niveau: "L3", type: "TD" },
+    { id: "m3", nom: "Programmation Web", niveau: "L3", type: "TP" },
+    { id: "m4", nom: "Bases de données", niveau: "L3", type: "Cours" },
+    { id: "m5", nom: "Bases de données", niveau: "L3", type: "TD" },
+    { id: "m6", nom: "Bases de données", niveau: "L3", type: "TP" },
+  ]
+  
+  matieresSemestre2: Matiere[] = [
+    { id: "m7", nom: "Intelligence Artificielle", niveau: "L3", type: "Cours" },
+    { id: "m8", nom: "Intelligence Artificielle", niveau: "L3", type: "TD" },
+    { id: "m9", nom: "Intelligence Artificielle", niveau: "L3", type: "TP" },
+    { id: "m10", nom: "Réseaux", niveau: "L3", type: "Cours" },
+    { id: "m11", nom: "Réseaux", niveau: "L3", type: "TD" },
+    { id: "m12", nom: "Réseaux", niveau: "L3", type: "TP" },
+  ]
 
-  // Étudiants
-  etudiants: any[] = [];
-  filteredEtudiants: any[] = [];
-  etudiantSearchTerm = '';
-
-  // Submissions
-  submissions: Submission[] = [];
-  filteredSubmissions: Submission[] = [];
-  selectedSubmission: Submission | null = null;
-  submissionSearchTerm = '';
-
-  // Filters
-  filters = {
-    departement: '',
-    niveau: '',
-    specialite: '',
-    status: ''
-  };
-  searchTerm = '';
-
-  // View Mode
-  viewMode = 'grid'; // 'grid' or 'list'
-  activeTab = 'all'; // 'all', 'active', 'submitted'
-  detailsTab = 'submissions'; // 'submissions', 'etudiants'
-
-  // Forms
-  devoirForm!: FormGroup;
-  evaluationForm!: FormGroup;
-  editMode = false;
-  devoirToEdit: Devoir | null = null;
-
-  // File inputs
-  @ViewChild('devoirFileInput') devoirFileInput!: ElementRef;
-  devoirFile: File | null = null;
-
-  // Active Modal
-  activeModal: string | null = null;
-
-  constructor(private fb: FormBuilder) {
-    this.initializeForms();
+  // Ajouter les propriétés de notification
+  showNotifications = false
+  notifications: Notification[] = [
+    {
+      id: 1,
+      sender: "Ahmed Benali",
+      message: "J'ai soumis mon devoir de programmation web",
+      time: "Il y a 10 minutes",
+      read: false,
+      avatar: "A",
+    },
+    {
+      id: 2,
+      sender: "Fatima Zahra",
+      message: "Question concernant le TP de bases de données",
+      time: "Il y a 30 minutes",
+      read: false,
+      avatar: "F",
+    },
+    {
+      id: 3,
+      sender: "Mohamed Tazi",
+      message: "Demande de rendez-vous pour discuter du projet",
+      time: "Il y a 2 heures",
+      read: false,
+      avatar: "M",
+    },
+    {
+      id: 4,
+      sender: "Leila Kadiri",
+      message: "Confirmation de présence pour la séance de rattrapage",
+      time: "Il y a 5 heures",
+      read: true,
+      avatar: "L",
+    },
+    {
+      id: 5,
+      sender: "Karim Alaoui",
+      message: "Problème avec l'accès au quiz en ligne",
+      time: "Hier",
+      read: true,
+      avatar: "K",
+    },
+    {
+      id: 6,
+      sender: "Yasmine Berrada",
+      message: "Demande d'extension pour le délai du devoir",
+      time: "Hier",
+      read: true,
+      avatar: "Y",
+    },
+    {
+      id: 7,
+      sender: "Omar Idrissi",
+      message: "Question sur le chapitre 3 du cours",
+      time: "Il y a 2 jours",
+      read: true,
+      avatar: "O",
+    },
+    {
+      id: 8,
+      sender: "Nour El Houda",
+      message: "Partage d'un article intéressant lié au cours",
+      time: "Il y a 3 jours",
+      read: true,
+      avatar: "N",
+    },
+  ]
+  messageStats = {
+    unread: 0,
   }
+
+  // Formulaires
+  devoirForm!: FormGroup
+
+  // Fichier
+  @ViewChild("fileInput") fileInput!: ElementRef
+  selectedFile: File | null = null
+
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+  ) {}
 
   ngOnInit(): void {
-    this.loadMockData();
-    this.filterDevoirs();
+    this.initializeForm()
+    this.loadMockData()
+    this.filterDevoirs()
+    this.updateUnreadCount() // Ajouter l'initialisation du compteur de notifications
   }
 
-  private initializeForms(): void {
+  // Méthodes pour gérer les sous-menus
+  toggleCourSubmenu(event: Event): void {
+    event.stopPropagation();
+    this.showCourSubmenu = !this.showCourSubmenu;
+    
+    // Fermer les sous-menus de semestre si on ferme le menu cours
+    if (!this.showCourSubmenu) {
+      this.showSemestreSubmenu = { 1: false, 2: false };
+    }
+  }
+  
+  toggleSemestreSubmenu(event: Event, semestre: number): void {
+    event.stopPropagation();
+    this.showSemestreSubmenu[semestre] = !this.showSemestreSubmenu[semestre];
+  }
+  
+  navigateToMatiere(event: Event, matiereId: string, semestre: number): void {
+    event.stopPropagation();
+    // Naviguer vers la page de la matière
+    this.router.navigate(['/matiere', matiereId, semestre]);
+  }
+
+  // Ajouter les méthodes de gestion des notifications
+  // Fermer les notifications quand on clique ailleurs
+  @HostListener("document:click", ["$event"])
+  clickOutside(event: Event): void {
+    const notificationIcon = document.querySelector(".notification-icon")
+    const notificationDropdown = document.querySelector(".notification-dropdown")
+
+    if (notificationIcon && notificationDropdown) {
+      if (!notificationIcon.contains(event.target as Node) && !notificationDropdown.contains(event.target as Node)) {
+        this.showNotifications = false
+      }
+    }
+  }
+
+  // Basculer l'affichage des notifications
+  toggleNotifications(event: Event): void {
+    event.stopPropagation()
+    this.showNotifications = !this.showNotifications
+  }
+
+  // Marquer une notification comme lue
+  markAsRead(notification: Notification): void {
+    notification.read = true
+    this.updateUnreadCount()
+  }
+
+  // Marquer toutes les notifications comme lues
+  markAllAsRead(): void {
+    this.notifications.forEach((notification) => {
+      notification.read = true
+    })
+    this.updateUnreadCount()
+  }
+
+  // Mettre à jour le compteur de messages non lus
+  updateUnreadCount(): void {
+    this.messageStats.unread = this.notifications.filter((n) => !n.read).length
+  }
+
+  // Supprimer une notification
+  deleteNotification(id: number, event: Event): void {
+    event.stopPropagation()
+    this.notifications = this.notifications.filter((n) => n.id !== id)
+    this.updateUnreadCount()
+  }
+
+  // Initialiser le formulaire
+  private initializeForm(): void {
     this.devoirForm = this.fb.group({
-      title: ['', Validators.required],
-      description: ['', Validators.required],
-      cour: ['', Validators.required],
-      departement: ['', Validators.required],
-      niveau: ['', Validators.required],
-      specialite: ['', Validators.required],
-      dueDate: ['', Validators.required],
-      notifyEtudiants: [true]
-    });
-
-    this.evaluationForm = this.fb.group({
-      note: ['', [Validators.required, Validators.min(0), Validators.max(20)]],
-      feedback: ['', Validators.required],
-      notifyEtudiant: [true]
-    });
-
-    // Listen for form changes
-    this.devoirForm.get('departement')?.valueChanges.subscribe((value) => {
-      this.onFormDepartementChange({ target: { value } });
-    });
-
-    this.devoirForm.get('cour')?.valueChanges.subscribe((value) => {
-      if (value) {
-        const selectedCour = this.cours.find(c => c._id === value);
-        if (selectedCour) {
-          this.devoirForm.patchValue({
-            departement: selectedCour.departement,
-            niveau: selectedCour.niveau,
-            specialite: selectedCour.specialite
-          }, { emitEvent: false });
-        }
-      }
-    });
+      title: ["", Validators.required],
+      description: ["", Validators.required],
+      subject: ["", Validators.required],
+      type: ["Cours", Validators.required], // Type de devoir avec valeur par défaut
+      dueDate: ["", Validators.required],
+      file: [""],
+    })
   }
 
-  // Méthode pour charger les données mock
-  loadMockData(): void {
-    // Charger les départements
-    this.departements = [
-      { _id: 'dep1', name: 'Informatique' },
-      { _id: 'dep2', name: 'Mathématiques' },
-      { _id: 'dep3', name: 'Physique' }
-    ];
-    
-    // Charger les niveaux
-    this.niveaux = [
-      { _id: 'niv1', name: 'Licence 1' },
-      { _id: 'niv2', name: 'Licence 2' },
-      { _id: 'niv3', name: 'Licence 3' },
-      { _id: 'niv4', name: 'Master 1' },
-      { _id: 'niv5', name: 'Master 2' }
-    ];
-    
-    // Charger les spécialités
-    this.specialites = [
-      { _id: 'spe1', name: 'Développement Web', departement: 'dep1' },
-      { _id: 'spe2', name: 'Intelligence Artificielle', departement: 'dep1' },
-      { _id: 'spe3', name: 'Algèbre', departement: 'dep2' },
-      { _id: 'spe4', name: 'Analyse', departement: 'dep2' },
-      { _id: 'spe5', name: 'Mécanique Quantique', departement: 'dep3' }
-    ];
-    
-    this.filteredSpecialites = [...this.specialites];
-    this.formFilteredSpecialites = [...this.specialites];
-    
-    // Charger les cours
-    this.cours = [
-      { _id: 'c1', title: 'Introduction à Angular', departement: 'dep1', niveau: 'niv3', specialite: 'spe1' },
-      { _id: 'c2', title: 'Machine Learning avec Python', departement: 'dep1', niveau: 'niv4', specialite: 'spe2' },
-      { _id: 'c3', title: 'Algèbre linéaire avancée', departement: 'dep2', niveau: 'niv4', specialite: 'spe3' }
-    ];
-    
-    this.filteredCours = [...this.cours];
-    
-    // Charger les étudiants
-    this.etudiants = [
-      { _id: 'e1', name: 'Jean Dupont', email: 'jean.dupont@email.com', matricule: 'E12345', niveau: 'niv3', specialite: 'spe1' },
-      { _id: 'e2', name: 'Marie Martin', email: 'marie.martin@email.com', matricule: 'E12346', niveau: 'niv3', specialite: 'spe1' },
-      { _id: 'e3', name: 'Pierre Durand', email: 'pierre.durand@email.com', matricule: 'E12347', niveau: 'niv4', specialite: 'spe2' }
-    ];
-    
-    // Charger les devoirs
-    const today = new Date();
-    const nextWeek = new Date(today);
-    nextWeek.setDate(today.getDate() + 7);
-    const lastWeek = new Date(today);
-    lastWeek.setDate(today.getDate() - 7);
-    const nextMonth = new Date(today);
-    nextMonth.setMonth(today.getMonth() + 1);
-    
-    this.devoirs = [
-      {
-        _id: 'd1',
-        title: 'Projet Angular',
-        description: 'Créer une application de gestion de tâches avec Angular',
-        cour: 'c1',
-        departement: 'dep1',
-        niveau: 'niv3',
-        specialite: 'spe1',
-        dueDate: nextWeek,
-        createdAt: lastWeek,
-        assignedCount: 25,
-        submissionsCount: 15,
-        submissions: [
-          {
-            _id: 's1',
-            devoirId: 'd1',
-            etudiantId: 'e1',
-            etudiantName: 'Jean Dupont',
-            submittedAt: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000),
-            fileName: 'projet-angular-jean.zip',
-            comment: 'Voici mon projet Angular',
-            evaluated: true,
-            note: 18,
-            feedback: 'Excellent travail, très bonne structure du code.'
-          },
-          {
-            _id: 's2',
-            devoirId: 'd1',
-            etudiantId: 'e2',
-            etudiantName: 'Marie Martin',
-            submittedAt: new Date(today.getTime() - 1 * 24 * 60 * 60 * 1000),
-            fileName: 'projet-angular-marie.zip',
-            comment: 'J\'ai ajouté des fonctionnalités supplémentaires',
-            evaluated: false
-          }
-        ],
-        etudiants: [
-          { 
-            _id: 'e1', 
-            name: 'Jean Dupont', 
-            email: 'jean.dupont@email.com', 
-            matricule: 'E12345', 
-            niveau: 'niv3', 
-            specialite: 'spe1',
-            submitted: true
-          },
-          { 
-            _id: 'e2', 
-            name: 'Marie Martin', 
-            email: 'marie.martin@email.com', 
-            matricule: 'E12346', 
-            niveau: 'niv3', 
-            specialite: 'spe1',
-            submitted: true
-          }
-        ],
-        file: 'devoir-angular.pdf',
-        fileName: 'Projet Angular - Instructions.pdf'
-      },
-      {
-        _id: 'd2',
-        title: 'Algorithmes de Machine Learning',
-        description: 'Implémenter différents algorithmes de classification',
-        cour: 'c2',
-        departement: 'dep1',
-        niveau: 'niv4',
-        specialite: 'spe2',
-        dueDate: nextMonth,
-        createdAt: today,
-        assignedCount: 18,
-        submissionsCount: 0,
-        submissions: [],
-        etudiants: [
-          { 
-            _id: 'e3', 
-            name: 'Pierre Durand', 
-            email: 'pierre.durand@email.com', 
-            matricule: 'E12347', 
-            niveau: 'niv4', 
-            specialite: 'spe2',
-            submitted: false
-          }
-        ],
-        file: 'devoir-ml.pdf',
-        fileName: 'Algorithmes ML - Instructions.pdf'
-      },
-      {
-        _id: 'd3',
-        title: 'Exercices d\'algèbre',
-        description: 'Résoudre les exercices du chapitre 5',
-        cour: 'c3',
-        departement: 'dep2',
-        niveau: 'niv4',
-        specialite: 'spe3',
-        dueDate: lastWeek,
-        createdAt: new Date(lastWeek.getTime() - 7 * 24 * 60 * 60 * 1000),
-        assignedCount: 15,
-        submissionsCount: 12,
-        submissions: [],
-        etudiants: [],
-        file: 'exercices-algebre.pdf',
-        fileName: 'Exercices Algèbre - Chapitre 5.pdf'
-      }
-    ];
-    
-    this.filteredDevoirs = [...this.devoirs];
-    
-    // Mettre à jour les statistiques
-    this.updateStats();
-  }
-
-  updateStats(): void {
-    const now = new Date();
-    
-    this.devoirsStats.total = this.devoirs.length;
-    
-    this.devoirsStats.active = this.devoirs.filter(d => {
-      const dueDate = new Date(d.dueDate);
-      return dueDate > now && new Date(d.createdAt) <= now;
-    }).length;
-    
-    this.devoirsStats.submissions = this.devoirs.reduce((acc, devoir) => {
-      return acc + (devoir.submissions?.filter(s => !s.evaluated)?.length || 0);
-    }, 0);
-    
-    this.activeCount = this.devoirsStats.active;
-    this.submissionsCount = this.devoirsStats.submissions;
-  }
-
-  onDepartementChange(event: any): void {
-    const departementId = event.target.value;
-    if (!departementId) {
-      this.filteredSpecialites = [...this.specialites];
-      return;
-    }
-
-    this.filteredSpecialites = this.specialites.filter(
-      (specialite) => specialite.departement === departementId
-    );
-  }
-
-  onFormDepartementChange(event: any): void {
-    const departementId = event.target.value;
-    if (!departementId) {
-      this.formFilteredSpecialites = [...this.specialites];
-      return;
-    }
-
-    this.formFilteredSpecialites = this.specialites.filter(
-      (specialite) => specialite.departement === departementId
-    );
-  }
-
-  onCourChange(event: any): void {
-    const courId = event.target.value;
-    if (!courId) return;
-
-    const selectedCour = this.cours.find(c => c._id === courId);
-    if (selectedCour) {
-      this.devoirForm.patchValue({
-        departement: selectedCour.departement,
-        niveau: selectedCour.niveau,
-        specialite: selectedCour.specialite
-      });
-    }
-  }
-
+  // Méthodes pour le filtrage
   filterDevoirs(): void {
-    let filtered = [...this.devoirs];
-
-    // Filtrer par onglet actif
-    if (this.activeTab === 'active') {
-      filtered = filtered.filter(d => this.isDevoirActive(d));
-    } else if (this.activeTab === 'submitted') {
-      filtered = filtered.filter(d => (d.submissions?.some(s => !s.evaluated) || false));
-    }
-
-    // Appliquer les filtres de département, niveau et spécialité
-    if (this.filters.departement) {
-      filtered = filtered.filter(
-        (devoir) => devoir.departement === this.filters.departement
-      );
-    }
-
-    if (this.filters.niveau) {
-      filtered = filtered.filter(
-        (devoir) => devoir.niveau === this.filters.niveau
-      );
-    }
-
-    if (this.filters.specialite) {
-      filtered = filtered.filter(
-        (devoir) => devoir.specialite === this.filters.specialite
-      );
-    }
-
-    // Appliquer le filtre de statut
-    if (this.filters.status) {
-      if (this.filters.status === 'active') {
-        filtered = filtered.filter(d => this.isDevoirActive(d));
-      } else if (this.filters.status === 'expired') {
-        filtered = filtered.filter(d => this.isDevoirExpired(d));
-      } else if (this.filters.status === 'upcoming') {
-        filtered = filtered.filter(d => this.isDevoirUpcoming(d));
+    this.filteredDevoirs = this.devoirs.filter((devoir) => {
+      // Filtre par recherche
+      if (
+        this.searchTerm &&
+        !devoir.title.toLowerCase().includes(this.searchTerm.toLowerCase()) &&
+        !devoir.description.toLowerCase().includes(this.searchTerm.toLowerCase())
+      ) {
+        return false
       }
-    }
 
-    // Appliquer le filtre de recherche
-    if (this.searchTerm.trim()) {
-      const term = this.searchTerm.toLowerCase().trim();
-      filtered = filtered.filter(
-        (devoir) => 
-          devoir.title.toLowerCase().includes(term) ||
-          devoir.description.toLowerCase().includes(term) ||
-          this.getCourTitle(devoir.cour).toLowerCase().includes(term)
-      );
-    }
+      // Filtre par matière
+      if (this.subjectFilter && devoir.subject !== this.subjectFilter) {
+        return false
+      }
 
-    this.filteredDevoirs = filtered;
+      // Filtre par type
+      if (this.typeFilter && devoir.type !== this.typeFilter) {
+        return false
+      }
+
+      return true
+    })
   }
 
   resetFilters(): void {
-    this.filters = {
-      departement: '',
-      niveau: '',
-      specialite: '',
-      status: ''
-    };
-    this.searchTerm = '';
-    this.filterDevoirs();
+    this.searchTerm = ""
+    this.subjectFilter = ""
+    this.typeFilter = ""
+    this.filterDevoirs()
   }
 
-  filterSubmissions(): void {
-    if (!this.selectedDevoir || !this.selectedDevoir.submissions) {
-      this.filteredSubmissions = [];
-      return;
-    }
+  // Méthodes pour charger les données
+  loadMockData(): void {
+    // Générer des données de devoirs fictives
+    const subjects = ["Programmation Web", "Bases de données", "Algorithmes", "Intelligence Artificielle", "Réseaux"]
+    const groups = ["G1.1", "G1.2", "G1.3", "G2.1", "G2.2", "G2.3"]
+    const types: ("TD" | "TP" | "Cours")[] = ["TD", "TP", "Cours"]
 
-    if (!this.submissionSearchTerm.trim()) {
-      this.filteredSubmissions = [...this.selectedDevoir.submissions];
-      return;
-    }
+    // Générer des étudiants fictifs
+    const generateStudents = (count: number, responseRate: number): Student[] => {
+      const students: Student[] = []
+      const firstNames = ["Mohamed", "Ahmed", "Fatima", "Aisha", "Omar", "Ali", "Nour", "Leila", "Karim", "Yasmine"]
+      const lastNames = [
+        "Ben Ali",
+        "Trabelsi",
+        "Bouazizi",
+        "Mansouri",
+        "Jebali",
+        "Riahi",
+        "Mejri",
+        "Gharbi",
+        "Chaabane",
+        "Zouari",
+      ]
 
-    const term = this.submissionSearchTerm.toLowerCase().trim();
-    this.filteredSubmissions = this.selectedDevoir.submissions.filter(
-      (submission) => submission.etudiantName.toLowerCase().includes(term)
-    );
-  }
+      for (let i = 0; i < count; i++) {
+        const firstName = firstNames[Math.floor(Math.random() * firstNames.length)]
+        const lastName = lastNames[Math.floor(Math.random() * lastNames.length)]
+        const group = groups[Math.floor(Math.random() * groups.length)]
+        const hasResponded = Math.random() < responseRate
 
-  filterEtudiants(): void {
-    if (!this.selectedDevoir || !this.selectedDevoir.etudiants) {
-      this.filteredEtudiants = [];
-      return;
-    }
-
-    if (!this.etudiantSearchTerm.trim()) {
-      this.filteredEtudiants = [...this.selectedDevoir.etudiants];
-      return;
-    }
-
-    const term = this.etudiantSearchTerm.toLowerCase().trim();
-    this.filteredEtudiants = this.selectedDevoir.etudiants.filter(
-      (etudiant) =>
-        etudiant.name.toLowerCase().includes(term) ||
-        etudiant.email.toLowerCase().includes(term) ||
-        etudiant.matricule.toLowerCase().includes(term)
-    );
-  }
-
-  setActiveTab(tab: string): void {
-    this.activeTab = tab;
-    this.filterDevoirs();
-  }
-
-  setDetailsTab(tab: string): void {
-    this.detailsTab = tab;
-    if (tab === 'submissions') {
-      this.submissionSearchTerm = '';
-      this.filterSubmissions();
-    } else if (tab === 'etudiants') {
-      this.etudiantSearchTerm = '';
-      this.filterEtudiants();
-    }
-  }
-
-  getTabTitle(): string {
-    switch (this.activeTab) {
-      case 'active':
-        return 'Devoirs actifs';
-      case 'submitted':
-        return 'Soumissions à évaluer';
-      default:
-        return 'Tous les devoirs';
-    }
-  }
-
-  showModal(modalType: string): void {
-    this.activeModal = modalType;
-
-    if (modalType === 'nouveauDevoir') {
-      if (!this.editMode) {
-        this.devoirForm.reset({
-          notifyEtudiants: true
-        });
-        this.devoirFile = null;
-        if (this.devoirFileInput) {
-          this.devoirFileInput.nativeElement.value = '';
-        }
-      }
-    }
-  }
-
-  hideModal(): void {
-    this.activeModal = null;
-    this.editMode = false;
-    this.devoirToEdit = null;
-    this.selectedSubmission = null;
-  }
-
-  onDevoirFileChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.devoirFile = input.files[0];
-    }
-  }
-
-  submitDevoirForm(): void {
-    if (this.devoirForm.valid) {
-      const devoirData = {
-        ...this.devoirForm.value,
-        teacher: this.id
-      };
-
-      if (this.editMode && this.devoirToEdit) {
-        // Mise à jour du devoir existant
-        const index = this.devoirs.findIndex(d => d._id === this.devoirToEdit?._id);
-        if (index !== -1) {
-          this.devoirs[index] = {
-            ...this.devoirs[index],
-            ...devoirData,
-            file: this.devoirFile ? 'mock-file-path' : this.devoirs[index].file,
-            fileName: this.devoirFile ? this.devoirFile.name : this.devoirs[index].fileName
-          };
-          console.log('Devoir mis à jour:', this.devoirs[index]);
-        }
-      } else {
-        // Ajout d'un nouveau devoir
-        const newDevoir: Devoir = {
-          _id: 'd' + (this.devoirs.length + 1),
-          ...devoirData,
-          createdAt: new Date(),
-          assignedCount: 0,
-          submissionsCount: 0,
-          submissions: [],
-          etudiants: [],
-          file: this.devoirFile ? 'mock-file-path' : undefined,
-          fileName: this.devoirFile ? this.devoirFile.name : undefined
-        };
-        this.devoirs.push(newDevoir);
-        console.log('Devoir ajouté:', newDevoir);
+        students.push({
+          id: `S${i + 100}`,
+          name: `${firstName} ${lastName}`,
+          group,
+          hasResponded,
+          submissionDate: hasResponded ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000) : undefined,
+          score: hasResponded ? Math.floor(Math.random() * 41) + 60 : undefined, // Score entre 60 et 100
+          file: hasResponded ? "devoir-file.pdf" : undefined,
+          fileName: hasResponded ? `devoir_${firstName.toLowerCase()}_${lastName.toLowerCase()}.pdf` : undefined,
+          feedback: hasResponded ? "Bon travail, mais quelques améliorations possibles." : undefined,
+        })
       }
 
-      this.hideModal();
-      this.updateStats();
-      this.filterDevoirs();
+      return students
+    }
+
+    // Générer des devoirs
+    for (let i = 0; i < 6; i++) {
+      const subject = subjects[Math.floor(Math.random() * subjects.length)]
+      const isActive = Math.random() > 0.3
+      const studentCount = Math.floor(Math.random() * 20) + 15 // Entre 15 et 35 étudiants
+      const responseRate = Math.random() * 0.6 + 0.2 // Entre 20% et 80%
+      const students = generateStudents(studentCount, responseRate)
+      const devoirType = types[Math.floor(Math.random() * types.length)]
+
+      this.devoirs.push({
+        id: `devoir-${i + 1}`,
+        title: `Devoir ${i + 1}: ${subject}`,
+        description: `Description du devoir sur ${subject}. Ce devoir couvre les concepts fondamentaux de la matière.`,
+        subject,
+        type: devoirType,
+        createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000), // Dans les 30 derniers jours
+        dueDate: isActive
+          ? new Date(Date.now() + Math.random() * 14 * 24 * 60 * 60 * 1000) // Dans les 14 prochains jours
+          : new Date(Date.now() - Math.random() * 14 * 24 * 60 * 60 * 1000), // Dans les 14 derniers jours
+        isActive,
+        file: Math.random() > 0.3 ? "devoir-file.pdf" : undefined,
+        fileName: Math.random() > 0.3 ? `devoir_${i + 1}_${subject.toLowerCase().replace(/\s+/g, "_")}.pdf` : undefined,
+        students,
+        responseCount: students.filter((s) => s.hasResponded).length,
+      })
     }
   }
 
-  editDevoir(devoir: Devoir): void {
-    this.editMode = true;
-    this.devoirToEdit = devoir;
-    
-    // Format the date to YYYY-MM-DD for the input field
-    const dueDate = new Date(devoir.dueDate);
-    const formattedDate = dueDate.toISOString().split('T')[0];
-    
+  // Méthodes pour gérer les modales
+  openDevoirModal(devoir?: Devoir): void {
+    if (devoir) {
+      // Mode édition
+      this.editMode = true
+      this.selectedDevoir = devoir
+      this.loadDevoirForEdit(devoir)
+    } else {
+      // Mode création
+      this.editMode = false
+      this.selectedDevoir = null
+      this.devoirForm.reset({
+        title: "",
+        description: "",
+        subject: "",
+        type: "Cours",
+        dueDate: this.formatDateForInput(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)), // +7 jours par défaut
+      })
+      this.selectedFile = null
+    }
+
+    this.showDevoirModal = true
+  }
+
+  closeDevoirModal(): void {
+    this.showDevoirModal = false
+  }
+
+  openStudentModal(devoir: Devoir): void {
+    this.selectedDevoir = devoir
+    this.showStudentModal = true
+  }
+
+  closeStudentModal(): void {
+    this.showStudentModal = false
+  }
+
+  openResponseModal(student: Student): void {
+    this.selectedStudent = student
+    this.showResponseModal = true
+  }
+
+  closeResponseModal(): void {
+    this.showResponseModal = false
+  }
+
+  // Nouvelle méthode pour ouvrir la modale d'aperçu PDF
+  openPdfPreviewModal(file: string, fileName: string): void {
+    this.previewFile = file
+    this.previewFileName = fileName
+    this.showPdfPreviewModal = true
+  }
+
+  // Nouvelle méthode pour fermer la modale d'aperçu PDF
+  closePdfPreviewModal(): void {
+    this.showPdfPreviewModal = false
+    this.previewFile = null
+    this.previewFileName = null
+  }
+
+  loadDevoirForEdit(devoir: Devoir): void {
     this.devoirForm.patchValue({
       title: devoir.title,
       description: devoir.description,
-      cour: devoir.cour,
-      departement: devoir.departement,
-      niveau: devoir.niveau,
-      specialite: devoir.specialite,
-      dueDate: formattedDate,
-      notifyEtudiants: false
-    });
-    
-    this.onFormDepartementChange({ target: { value: devoir.departement } });
-    this.showModal('nouveauDevoir');
+      subject: devoir.subject,
+      type: devoir.type,
+      dueDate: this.formatDateForInput(devoir.dueDate),
+    })
+  }
+
+  // Méthodes pour les actions sur les devoirs
+  submitDevoir(): void {
+    if (this.devoirForm.invalid) {
+      // Marquer tous les champs comme touchés pour afficher les erreurs
+      Object.keys(this.devoirForm.controls).forEach((key) => {
+        const control = this.devoirForm.get(key)
+        control?.markAsTouched()
+      })
+      return
+    }
+
+    const formValue = this.devoirForm.value
+
+    if (this.editMode && this.selectedDevoir) {
+      // Mettre à jour un devoir existant
+      const updatedDevoir: Devoir = {
+        ...this.selectedDevoir,
+        title: formValue.title,
+        description: formValue.description,
+        subject: formValue.subject,
+        type: formValue.type,
+        dueDate: new Date(formValue.dueDate),
+        file: this.selectedFile ? this.selectedFile.name : this.selectedDevoir.file,
+        fileName: this.selectedFile ? this.selectedFile.name : this.selectedDevoir.fileName,
+      }
+
+      // Mettre à jour le devoir dans la liste
+      const index = this.devoirs.findIndex((q) => q.id === this.selectedDevoir?.id)
+      if (index !== -1) {
+        this.devoirs[index] = updatedDevoir
+      }
+    } else {
+      // Créer un nouveau devoir
+      const newDevoir: Devoir = {
+        id: `devoir-${this.devoirs.length + 1}`,
+        title: formValue.title,
+        description: formValue.description,
+        subject: formValue.subject,
+        type: formValue.type,
+        createdAt: new Date(),
+        dueDate: new Date(formValue.dueDate),
+        isActive: true,
+        file: this.selectedFile ? this.selectedFile.name : undefined,
+        fileName: this.selectedFile ? this.selectedFile.name : undefined,
+        students: [],
+        responseCount: 0,
+      }
+
+      this.devoirs.push(newDevoir)
+    }
+
+    // Filtrer les devoirs
+    this.filterDevoirs()
+    this.closeDevoirModal()
   }
 
   deleteDevoir(devoir: Devoir): void {
-    this.devoirToEdit = devoir;
-    this.showModal('confirmation');
-  }
-
-  confirmDeleteDevoir(): void {
-    if (this.devoirToEdit) {
-      const index = this.devoirs.findIndex(d => d._id === this.devoirToEdit?._id);
+    if (confirm(`Êtes-vous sûr de vouloir supprimer le devoir "${devoir.title}" ?`)) {
+      const index = this.devoirs.findIndex((q) => q.id === devoir.id)
       if (index !== -1) {
-        this.devoirs.splice(index, 1);
-        console.log('Devoir supprimé avec succès');
+        this.devoirs.splice(index, 1)
+        this.filterDevoirs()
       }
-      this.hideModal();
-      this.updateStats();
-      this.filterDevoirs();
     }
   }
 
-  viewDevoirDetails(devoir: Devoir): void {
-    // Trouver le devoir complet avec tous les détails
-    const devoirComplet = this.devoirs.find(d => d._id === devoir._id);
-    if (devoirComplet) {
-      this.selectedDevoir = devoirComplet;
-      this.detailsTab = 'submissions';
-      this.filteredSubmissions = devoirComplet.submissions || [];
-      this.filteredEtudiants = devoirComplet.etudiants || [];
-      this.showModal('devoirDetails');
+  // Gestion des fichiers
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement
+    if (input.files && input.files.length > 0) {
+      this.selectedFile = input.files[0]
     }
   }
 
-  viewSubmission(submission: Submission): void {
-    this.selectedSubmission = submission;
-    this.evaluationForm.patchValue({
-      note: submission.note || '',
-      feedback: submission.feedback || '',
-      notifyEtudiant: true
-    });
-    this.showModal('evaluation');
-  }
-
-  evaluateSubmission(submission: Submission): void {
-    this.selectedSubmission = submission;
-    this.evaluationForm.patchValue({
-      note: submission.note || '',
-      feedback: submission.feedback || '',
-      notifyEtudiant: true
-    });
-    this.showModal('evaluation');
-  }
-
-  submitEvaluation(): void {
-    if (this.evaluationForm.valid && this.selectedSubmission) {
-      const evaluationData = this.evaluationForm.value;
-
-      // Mettre à jour la soumission dans la liste
-      if (this.selectedDevoir && this.selectedDevoir.submissions) {
-        const index = this.selectedDevoir.submissions.findIndex(s => s._id === this.selectedSubmission?._id);
-        if (index !== -1) {
-          this.selectedDevoir.submissions[index] = {
-            ...this.selectedDevoir.submissions[index],
-            evaluated: true,
-            note: evaluationData.note,
-            feedback: evaluationData.feedback
-          };
-          console.log('Évaluation enregistrée:', this.selectedDevoir.submissions[index]);
-          this.filterSubmissions();
-        }
-      }
-      
-      // Mettre à jour les statistiques
-      this.updateStats();
-      this.hideModal();
-    }
-  }
-
-  downloadDevoirFile(devoir: Devoir): void {
-    if (devoir.file) {
-      console.log('Téléchargement du fichier:', devoir.fileName);
-      // Dans une implémentation réelle, cela déclencherait un téléchargement
-      alert(`Téléchargement simulé du fichier: ${devoir.fileName}`);
-    }
-  }
-
-  downloadSubmission(submission: Submission): void {
-    if (submission.file) {
-      console.log('Téléchargement de la soumission:', submission.fileName);
-      // Dans une implémentation réelle, cela déclencherait un téléchargement
-      alert(`Téléchargement simulé du fichier: ${submission.fileName}`);
-    }
-  }
-
-  viewEtudiantDetails(etudiant: any): void {
-    console.log('Voir les détails de l\'étudiant:', etudiant);
-    // Dans une implémentation réelle, cela ouvrirait une modal avec les détails
-    alert(`Détails de l'étudiant: ${etudiant.name}`);
-  }
-
-  sendReminderToEtudiant(etudiant: any): void {
-    if (this.selectedDevoir) {
-      console.log('Rappel envoyé à:', etudiant.name, 'pour le devoir:', this.selectedDevoir.title);
-      // Dans une implémentation réelle, cela enverrait un email
-      alert(`Rappel envoyé à ${etudiant.name} pour le devoir: ${this.selectedDevoir.title}`);
-    }
+  downloadFile(file: string, fileName: string): void {
+    // Dans une application réelle, ceci déclencherait un téléchargement
+    console.log(`Téléchargement du fichier: ${fileName}`)
+    alert(`Téléchargement du fichier: ${fileName}`)
   }
 
   // Méthodes utilitaires
-  getDepartementName(id: string): string {
-    const departement = this.departements.find(d => d._id === id);
-    return departement ? departement.name : 'Non spécifié';
+  formatDate(date: Date | undefined): string {
+    if (!date) return "-"
+    return date.toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
   }
 
-  getNiveauName(id: string): string {
-    const niveau = this.niveaux.find(n => n._id === id);
-    return niveau ? niveau.name : 'Non spécifié';
+  formatDateForInput(date: Date): string {
+    return date.toISOString().split("T")[0]
   }
 
-  getSpecialiteName(id: string): string {
-    const specialite = this.specialites.find(s => s._id === id);
-    return specialite ? specialite.name : 'Non spécifié';
+  getUniqueSubjects(): string[] {
+    const subjects = new Set<string>()
+    this.devoirs.forEach((devoir) => subjects.add(devoir.subject))
+    return Array.from(subjects).sort()
   }
 
-  getCourTitle(id: string): string {
-    const cour = this.cours.find(c => c._id === id);
-    return cour ? cour.title : 'Non spécifié';
+  getResponseRate(devoir: Devoir): number {
+    if (!devoir.students || devoir.students.length === 0) return 0
+    return Math.round(((devoir.responseCount || 0) / devoir.students.length) * 100)
   }
 
-  isDevoirActive(devoir: Devoir): boolean {
-    const now = new Date();
-    const dueDate = new Date(devoir.dueDate);
-    const createdAt = new Date(devoir.createdAt);
-    return dueDate > now && createdAt <= now;
-  }
-
-  isDevoirExpired(devoir: Devoir): boolean {
-    const now = new Date();
-    const dueDate = new Date(devoir.dueDate);
-    return dueDate <= now;
-  }
-
-  isDevoirUpcoming(devoir: Devoir): boolean {
-    const now = new Date();
-    const createdAt = new Date(devoir.createdAt);
-    return createdAt > now;
-  }
-
-  getDevoirStatus(devoir: Devoir): string {
-    if (this.isDevoirActive(devoir)) {
-      return 'Actif';
-    } else if (this.isDevoirExpired(devoir)) {
-      return 'Expiré';
-    } else if (this.isDevoirUpcoming(devoir)) {
-      return 'À venir';
+  getTypeClass(type: string): string {
+    switch (type) {
+      case "Cours":
+        return "cours"
+      case "TD":
+        return "td"
+      case "TP":
+        return "tp"
+      default:
+        return ""
     }
-    return 'Inconnu';
+  }
+
+  // Navigation vers les autres pages
+  navigateTo(route: string): void {
+    this.router.navigate([`/deuxieme-interface/${route}`])
   }
 }

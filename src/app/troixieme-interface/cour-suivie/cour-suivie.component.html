@@ -37,6 +37,11 @@
           <i class="fas fa-envelope"></i>
           <span>Forum de discussion</span>
         </li>
+        <li routerLink="/troixieme-interface/notification" routerLinkActive="active">
+          <i class="fas fa-bell"></i>
+          <span>Notification</span>
+          <span class="badge" *ngIf="getUnreadNotificationsCount()">{{ getUnreadNotificationsCount() }}</span>
+        </li>
       </ul>
     </nav>
   </div>
@@ -52,7 +57,48 @@
           <i class="fas fa-search"></i>
           <input type="text" placeholder="Rechercher un cours...">
         </div>
-        <app-notification></app-notification>
+        <!-- Notification avec dropdown - Avec le style corrigé -->
+        <div class="notification-wrapper">
+          <div class="notification-btn" (click)="toggleNotificationDropdown($event)">
+            <i class="fas fa-bell"></i>
+            <span class="badge" *ngIf="getUnreadNotificationsCount()">{{ getUnreadNotificationsCount() }}</span>
+          </div>
+          
+          <!-- Dropdown de notifications -->
+          <div class="notification-dropdown" *ngIf="showNotificationDropdown">
+            <div class="notification-header">
+              <h3>Notifications</h3>
+              <span class="notification-count">{{ getUnreadNotificationsCount() }} non lues</span>
+            </div>
+            
+            <div class="notification-list">
+              <div class="notification-empty" *ngIf="notifications.length === 0">
+                <i class="fas fa-bell-slash"></i>
+                <p>Aucune notification</p>
+              </div>
+              
+              <div class="notification-item" *ngFor="let notification of notifications.slice(0, 5)" 
+                   [class.unread]="!notification.read"
+                   (click)="markAsRead(notification)">
+                <div class="notification-item-icon" [class]="notification.type">
+                  <i [class]="'fas ' + getNotificationIcon(notification.type)"></i>
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">{{ notification.title }}</div>
+                  <div class="notification-message">{{ notification.message }}</div>
+                  <div class="notification-time">{{ formatTimeAgo(notification.date) }}</div>
+                </div>
+                <div class="notification-status" *ngIf="!notification.read"></div>
+              </div>
+            </div>
+            
+            <div class="notification-footer">
+              <button class="btn-view-all" (click)="navigateToNotifications()">
+                Voir toutes les notifications
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -78,16 +124,12 @@
             <div class="matiere-card" *ngFor="let matiere of matieresSemestre1" (click)="selectMatiere(matiere)">
               <div class="matiere-header" [style.background-color]="matiere.couleur">
                 <div class="matiere-icon">
-                  <i class="fas" [class]="matiere.icon"></i>
+                  <i class="fas" [ngClass]="matiere.icon"></i>
                 </div>
               </div>
               <div class="matiere-body">
                 <h3>{{ matiere.nom }}</h3>
                 <div class="matiere-info">
-                  <div class="info-item">
-                    <i class="fas fa-user-tie"></i>
-                    <span>{{ matiere.enseignant }}</span>
-                  </div>
                   <div class="info-item">
                     <i class="fas fa-building"></i>
                     <span>{{ matiere.departement }}</span>
@@ -101,6 +143,17 @@
                       <span class="info-label">Heures</span>
                       <span class="info-value">{{ matiere.heures }}</span>
                     </div>
+                  </div>
+                  <div class="content-types-preview">
+                    <span class="content-type-badge" [class.available]="matiere.cours.disponible">
+                      <i class="fas fa-book"></i> Cours
+                    </span>
+                    <span class="content-type-badge" [class.available]="matiere.td.disponible">
+                      <i class="fas fa-chalkboard-teacher"></i> TD
+                    </span>
+                    <span class="content-type-badge" [class.available]="matiere.tp.disponible">
+                      <i class="fas fa-laptop-code"></i> TP
+                    </span>
                   </div>
                 </div>
               </div>
@@ -119,16 +172,12 @@
             <div class="matiere-card" *ngFor="let matiere of matieresSemestre2" (click)="selectMatiere(matiere)">
               <div class="matiere-header" [style.background-color]="matiere.couleur">
                 <div class="matiere-icon">
-                  <i class="fas" [class]="matiere.icon"></i>
+                  <i class="fas" [ngClass]="matiere.icon"></i>
                 </div>
               </div>
               <div class="matiere-body">
                 <h3>{{ matiere.nom }}</h3>
                 <div class="matiere-info">
-                  <div class="info-item">
-                    <i class="fas fa-user-tie"></i>
-                    <span>{{ matiere.enseignant }}</span>
-                  </div>
                   <div class="info-item">
                     <i class="fas fa-building"></i>
                     <span>{{ matiere.departement }}</span>
@@ -142,6 +191,17 @@
                       <span class="info-label">Heures</span>
                       <span class="info-value">{{ matiere.heures }}</span>
                     </div>
+                  </div>
+                  <div class="content-types-preview">
+                    <span class="content-type-badge" [class.available]="matiere.cours.disponible">
+                      <i class="fas fa-book"></i> Cours
+                    </span>
+                    <span class="content-type-badge" [class.available]="matiere.td.disponible">
+                      <i class="fas fa-chalkboard-teacher"></i> TD
+                    </span>
+                    <span class="content-type-badge" [class.available]="matiere.tp.disponible">
+                      <i class="fas fa-laptop-code"></i> TP
+                    </span>
                   </div>
                 </div>
               </div>
@@ -169,15 +229,12 @@
           <div class="matiere-info-card" [style.border-left-color]="selectedMatiere.couleur">
             <div class="matiere-info-header">
               <div class="matiere-icon-large" [style.background-color]="selectedMatiere.couleur">
-                <i class="fas" [class]="selectedMatiere.icon"></i>
+                <i class="fas" [ngClass]="selectedMatiere.icon"></i>
               </div>
               <div class="matiere-info-content">
                 <h3>{{ selectedMatiere.nom }}</h3>
+                <p class="matiere-description" *ngIf="selectedMatiere.description">{{ selectedMatiere.description }}</p>
                 <div class="matiere-meta">
-                  <div class="meta-item">
-                    <i class="fas fa-user-tie"></i>
-                    <span>{{ selectedMatiere.enseignant }}</span>
-                  </div>
                   <div class="meta-item">
                     <i class="fas fa-building"></i>
                     <span>{{ selectedMatiere.departement }}</span>
@@ -196,13 +253,63 @@
           </div>
         </div>
 
-        <div class="chapitres-list">
-          <h3 class="chapitres-title">Chapitres du cours</h3>
+        <!-- Onglets pour les types de contenu -->
+        <div class="content-tabs">
+          <div 
+            class="tab" 
+            [class.active]="activeContentType === 'cours'" 
+            [class.disabled]="!isContentTypeAvailable('cours')"
+            (click)="changeContentType('cours')"
+          >
+            <i class="fas fa-book"></i>
+            <span>Cours</span>
+            <span class="badge" *ngIf="isContentTypeAvailable('cours')">{{ getChapitresCount('cours') }}</span>
+          </div>
+          <div 
+            class="tab" 
+            [class.active]="activeContentType === 'td'" 
+            [class.disabled]="!isContentTypeAvailable('td')"
+            (click)="changeContentType('td')"
+          >
+            <i class="fas fa-chalkboard-teacher"></i>
+            <span>TD</span>
+            <span class="badge" *ngIf="isContentTypeAvailable('td')">{{ getChapitresCount('td') }}</span>
+          </div>
+          <div 
+            class="tab" 
+            [class.active]="activeContentType === 'tp'" 
+            [class.disabled]="!isContentTypeAvailable('tp')"
+            (click)="changeContentType('tp')"
+          >
+            <i class="fas fa-laptop-code"></i>
+            <span>TP</span>
+            <span class="badge" *ngIf="isContentTypeAvailable('tp')">{{ getChapitresCount('tp') }}</span>
+          </div>
+        </div>
+
+        <!-- Enseignant du type de contenu actif -->
+        <div class="enseignant-info-card" *ngIf="isContentTypeAvailable(activeContentType)">
+          <div class="enseignant-info-header">
+            <div class="enseignant-avatar-large">
+              <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="enseignant-info-content">
+              <h4>Enseignant {{ activeContentType === 'cours' ? 'du cours' : (activeContentType === 'td' ? 'des TD' : 'des TP') }}</h4>
+              <p class="enseignant-name">{{ getActiveEnseignant() }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Liste des chapitres du type de contenu actif -->
+        <div class="chapitres-list" *ngIf="isContentTypeAvailable(activeContentType)">
+          <h3 class="chapitres-title">
+            Chapitres {{ activeContentType === 'cours' ? 'du cours' : (activeContentType === 'td' ? 'des TD' : 'des TP') }}
+          </h3>
           
-          <div class="chapitre-card" *ngFor="let chapitre of selectedMatiere.chapitres">
+          <div class="chapitre-card" *ngFor="let chapitre of getActiveChapitres(); let i = index">
             <div class="chapitre-header">
               <div class="chapitre-number">
-                <span>{{ selectedMatiere.chapitres.indexOf(chapitre) + 1 }}</span>
+                <span>{{ i + 1 }}</span>
               </div>
               <h4>{{ chapitre.titre }}</h4>
             </div>
@@ -228,6 +335,21 @@
               </button>
             </div>
           </div>
+
+          <!-- État vide pour les chapitres -->
+          <div *ngIf="getActiveChapitres().length === 0" class="empty-state">
+            <i class="fas fa-folder-open"></i>
+            <h3>Aucun chapitre disponible</h3>
+            <p>Il n'y a pas encore de chapitres pour ce type de contenu.</p>
+          </div>
+        </div>
+
+        <!-- Message si le type de contenu n'est pas disponible -->
+        <div *ngIf="!isContentTypeAvailable(activeContentType)" class="content-unavailable">
+          <i class="fas fa-exclamation-circle"></i>
+          <h3>Contenu non disponible</h3>
+          <p>Ce type de contenu n'est pas disponible pour cette matière.</p>
+          <p>Veuillez sélectionner un autre type de contenu.</p>
         </div>
       </div>
     </div>

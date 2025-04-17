@@ -5,6 +5,8 @@ import { SpecialitesComponent } from "./specialites/specialites.component"
 import { RegimesComponent } from "./regimes/regimes.component"
 import { DepartementsComponent } from "./departements/departements.component"
 import { CoursComponent } from "./cours/cours.component"
+import { AccueilComponent } from "./accueil/accueil.component"
+
 import { AdminComponent } from "./admin/admin.component"
 import { EnseignantsComponent } from "./enseignants/enseignants.component"
 import { EtudiantsComponent } from "./etudiants/etudiants.component"
@@ -15,6 +17,7 @@ import { DevoirComponent } from "./deuxieme-interface/devoir/devoir.component"
 import { QuizComponent } from "./deuxieme-interface/quiz/quiz.component"
 import { MessageComponent } from "./deuxieme-interface/message/message.component"
 import { VoeuxComponent } from "./deuxieme-interface/voeux/voeux.component"
+import { EnsprofilComponent } from "./deuxieme-interface/ensprofil/ensprofil.component"
 
 
 // Composants de l'interface étudiant
@@ -23,10 +26,11 @@ import { DevoirRealiserComponent } from "./troixieme-interface/devoir-realiser/d
 import { QuizRepondComponent } from "./troixieme-interface/quiz-repond/quiz-repond.component"
 import { MessageEnvoyerComponent } from "./troixieme-interface/message-envoyer/message-envoyer.component"
 import { EduprofilComponent } from "./troixieme-interface/eduprofil/eduprofil.component"
-import { NotificationComponent } from "./troixieme-interface/notification/notification.component";
+import { EdunotificationComponent } from "./troixieme-interface/edunotification/edunotification.component"
 
 const routes: Routes = [
   { path: "", redirectTo: "/admin", pathMatch: "full" },
+  { path: "accueil", component: AccueilComponent },
   { path: "admin", component: AdminComponent },
   { path: "enseignants", component: EnseignantsComponent },
   { path: "etudiants", component: EtudiantsComponent },
@@ -43,6 +47,7 @@ const routes: Routes = [
   { path: "quiz", component: QuizComponent },
   { path: "message", component: MessageComponent },
   { path: "voeux", component: VoeuxComponent },
+  { path: "ensprofil", component: EnsprofilComponent }, // Nouvelle route pour le profil enseignant
 
   // Routes pour l'interface étudiant
   { path: "troixieme-interface/cour-suivie", component: CourSuivieComponent },
@@ -50,7 +55,7 @@ const routes: Routes = [
   { path: "troixieme-interface/quiz-repond", component: QuizRepondComponent },
   { path: "troixieme-interface/message-envoyer", component: MessageEnvoyerComponent },
   { path: "troixieme-interface/eduprofil", component: EduprofilComponent },
-  { path: "troixieme-interface/notification", component: NotificationComponent },
+  { path: "troixieme-interface/notification", component: EdunotificationComponent }, // Ajout de la route pour les notifications
   { path: "**", redirectTo: "/dashboard" }, // Route pour les URL non trouvées
 ]
 
@@ -59,4 +64,3 @@ const routes: Routes = [
   exports: [RouterModule],
 })
 export class AppRoutingModule {}
-

@@ -1,4 +1,5 @@
-<div class="enseignant-container">
+<!-- Container Layout -->
+<div class="devoir-container">
   <!-- Sidebar -->
   <div class="sidebar">
     <div class="sidebar-header">
@@ -6,35 +7,101 @@
         <div class="logo-icon">E</div>
         <span class="logo-text">EduSpace</span>
       </div>
-      <div class="enseignant-info">
+      <!-- Transformation en bouton profil cliquable -->
+      <button class="profile-button" routerLink="/ensprofil">
         <div class="enseignant-avatar">{{ enseignantName[0] }}</div>
         <div class="enseignant-details">
           <h3>{{ enseignantName }}</h3>
           <p>{{ enseignantEmail }}</p>
         </div>
-      </div>
+      </button>
     </div>
     <nav class="sidebar-nav">
       <ul>
-        <li [routerLink]="['/dashboard']" routerLinkActive="active">
+        <li routerLink="/dashboard" routerLinkActive="active">
           <i class="fas fa-home"></i>
           <span>Tableau de bord</span>
         </li>
-        <li [routerLink]="['/cour']" routerLinkActive="active">
+        <!-- Menu Cours avec sous-menus -->
+        <li (click)="toggleCourSubmenu($event)" [class.active]="showCourSubmenu">
           <i class="fas fa-book"></i>
           <span>Cours</span>
+          <i class="fas fa-chevron-down submenu-icon" [class.rotate]="showCourSubmenu"></i>
         </li>
-        <li [routerLink]="['/devoir']" routerLinkActive="active">
+        <!-- Sous-menu pour Cours -->
+        <div class="submenu" [class.visible]="showCourSubmenu">
+          <ul>
+            <!-- Option Semestre 1 -->
+            <li (click)="toggleSemestreSubmenu($event, 1)">
+              <i class="fas fa-calendar-alt"></i>
+              <span>Semestre 1</span>
+              <i class="fas fa-chevron-down submenu-icon" [class.rotate]="showSemestreSubmenu[1]"></i>
+            </li>
+            <!-- Sous-menu pour Semestre 1 -->
+            <div class="submenu nested" [class.visible]="showSemestreSubmenu[1]">
+              <ul>
+                <li *ngFor="let matiere of matieresSemestre1" (click)="navigateToMatiere($event, matiere.id, 1)">
+                  <div class="matiere-menu-item">
+                    <div class="matiere-menu-icon" [ngClass]="matiere.type.toLowerCase() + '-type'">
+                      <i class="fas" [ngClass]="{
+                        'fa-book-open': matiere.type === 'Cours',
+                        'fa-chalkboard-teacher': matiere.type === 'TD',
+                        'fa-laptop-code': matiere.type === 'TP'
+                      }"></i>
+                    </div>
+                    <div class="matiere-menu-content">
+                      <div class="matiere-menu-title">{{ matiere.nom }}</div>
+                      <div class="matiere-menu-details">
+                        <span class="matiere-menu-niveau">{{ matiere.niveau }}</span>
+                        <span class="matiere-menu-type" [ngClass]="matiere.type.toLowerCase() + '-type'">{{ matiere.type }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <!-- Option Semestre 2 -->
+            <li (click)="toggleSemestreSubmenu($event, 2)">
+              <i class="fas fa-calendar-alt"></i>
+              <span>Semestre 2</span>
+              <i class="fas fa-chevron-down submenu-icon" [class.rotate]="showSemestreSubmenu[2]"></i>
+            </li>
+            <!-- Sous-menu pour Semestre 2 -->
+            <div class="submenu nested" [class.visible]="showSemestreSubmenu[2]">
+              <ul>
+                <li *ngFor="let matiere of matieresSemestre2" (click)="navigateToMatiere($event, matiere.id, 2)">
+                  <div class="matiere-menu-item">
+                    <div class="matiere-menu-icon" [ngClass]="matiere.type.toLowerCase() + '-type'">
+                      <i class="fas" [ngClass]="{
+                        'fa-book-open': matiere.type === 'Cours',
+                        'fa-chalkboard-teacher': matiere.type === 'TD',
+                        'fa-laptop-code': matiere.type === 'TP'
+                      }"></i>
+                    </div>
+                    <div class="matiere-menu-content">
+                      <div class="matiere-menu-title">{{ matiere.nom }}</div>
+                      <div class="matiere-menu-details">
+                        <span class="matiere-menu-niveau">{{ matiere.niveau }}</span>
+                        <span class="matiere-menu-type" [ngClass]="matiere.type.toLowerCase() + '-type'">{{ matiere.type }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </ul>
+        </div>
+        <li routerLink="/devoir" routerLinkActive="active">
           <i class="fas fa-tasks"></i>
-          <span>Devoir</span>
+          <span>Devoirs</span>
         </li>
-        <li [routerLink]="['/quiz']" routerLinkActive="active">
+        <li routerLink="/quiz" routerLinkActive="active">
           <i class="fas fa-question-circle"></i>
           <span>Quiz</span>
         </li>
-        <li [routerLink]="['/message']" routerLinkActive="active">
+        <li routerLink="/message" routerLinkActive="active">
           <i class="fas fa-envelope"></i>
-          <span>Message</span>
+          <span>Messages</span>
         </li>
         <li routerLink="/voeux" routerLinkActive="active">
           <i class="fas fa-list-alt"></i>
@@ -43,255 +110,189 @@
       </ul>
     </nav>
   </div>
-
   <!-- Main Content -->
   <div class="main-content">
     <div class="content-header">
       <div class="header-title">
-        <h1>Devoirs</h1>
+        <h1>Mes Devoirs</h1>
       </div>
       <div class="header-actions">
         <div class="search-bar">
           <i class="fas fa-search"></i>
-          <input type="text" placeholder="Rechercher un devoir..." [(ngModel)]="searchTerm" (input)="filterDevoirs()">
+          <input 
+            type="text" 
+            placeholder="Rechercher un devoir..." 
+            [(ngModel)]="searchTerm" 
+            (input)="filterDevoirs()"
+          >
         </div>
-        <button class="btn-primary" (click)="showModal('nouveauDevoir')">
-          <i class="fas fa-plus"></i> Nouveau Devoir
+        <!-- Ajout de l'icône de notification -->
+        <div class="notification-icon" (click)="toggleNotifications($event)">
+          <i class="fas fa-bell"></i>
+          <span class="badge" *ngIf="messageStats.unread">{{ messageStats.unread }}</span>
+          
+          <!-- Dropdown des notifications -->
+          <div class="notification-dropdown" *ngIf="showNotifications">
+            <div class="notification-header">
+              <h3>Notifications</h3>
+              <button class="mark-all-read" (click)="markAllAsRead()">
+                <i class="fas fa-check-double"></i> Tout marquer comme lu
+              </button>
+            </div>
+            <div class="notification-list">
+              <div *ngIf="notifications.length === 0" class="no-notifications">
+                <i class="fas fa-bell-slash"></i>
+                <p>Aucune notification</p>
+              </div>
+              <div 
+                *ngFor="let notification of notifications" 
+                class="notification-item" 
+                [class.unread]="!notification.read"
+                (click)="markAsRead(notification)"
+              >
+                <div class="notification-avatar">
+                  {{ notification.avatar }}
+                </div>
+                <div class="notification-content">
+                  <div class="notification-sender">{{ notification.sender }}</div>
+                  <div class="notification-message">{{ notification.message }}</div>
+                  <div class="notification-time">{{ notification.time }}</div>
+                </div>
+                <button class="notification-delete" (click)="deleteNotification(notification.id, $event)">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+            <div class="notification-footer">
+              <a [routerLink]="['/message']">Voir tous les messages</a>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary" (click)="openDevoirModal()">
+          <i class="fas fa-plus"></i> Créer un devoir
         </button>
-      </div>
-    </div>
-
-    <!-- Dashboard -->
-    <div class="stats-cards">
-      <div class="stat-card">
-        <div class="stat-icon total">
-          <i class="fas fa-book"></i>
-        </div>
-        <div class="stat-info">
-          <h3>{{ devoirsStats.total }}</h3>
-          <p>Total des devoirs</p>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon active">
-          <i class="fas fa-clock"></i>
-        </div>
-        <div class="stat-info">
-          <h3>{{ devoirsStats.active }}</h3>
-          <p>Devoirs actifs</p>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon submissions">
-          <i class="fas fa-file-alt"></i>
-        </div>
-        <div class="stat-info">
-          <h3>{{ devoirsStats.submissions }}</h3>
-          <p>Soumissions en attente</p>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon students">
-          <i class="fas fa-user-graduate"></i>
-        </div>
-        <div class="stat-info">
-          <h3>{{ etudiants.length }}</h3>
-          <p>Étudiants</p>
-        </div>
       </div>
     </div>
 
     <!-- Filters -->
     <div class="filters-container">
       <div class="filter-group">
-        <label for="filter-departement">Département</label>
-        <select id="filter-departement" [(ngModel)]="filters.departement" (change)="onDepartementChange($event); filterDevoirs()">
-          <option value="">Tous les départements</option>
-          <option *ngFor="let dept of departements" [value]="dept._id">{{ dept.name }}</option>
+        <label for="subject-filter">Matière</label>
+        <select id="subject-filter" [(ngModel)]="subjectFilter" (change)="filterDevoirs()">
+          <option value="">Toutes les matières</option>
+          <option *ngFor="let subject of getUniqueSubjects()" [value]="subject">{{ subject }}</option>
         </select>
       </div>
       <div class="filter-group">
-        <label for="filter-niveau">Niveau</label>
-        <select id="filter-niveau" [(ngModel)]="filters.niveau" (change)="filterDevoirs()">
-          <option value="">Tous les niveaux</option>
-          <option *ngFor="let niveau of niveaux" [value]="niveau._id">{{ niveau.name }}</option>
+        <label for="type-filter">Type</label>
+        <select id="type-filter" [(ngModel)]="typeFilter" (change)="filterDevoirs()">
+          <option value="">Tous les types</option>
+          <option value="Cours">Cours</option>
+          <option value="TD">TD</option>
+          <option value="TP">TP</option>
         </select>
       </div>
-      <div class="filter-group">
-        <label for="filter-specialite">Spécialité</label>
-        <select id="filter-specialite" [(ngModel)]="filters.specialite" (change)="filterDevoirs()">
-          <option value="">Toutes les spécialités</option>
-          <option *ngFor="let specialite of filteredSpecialites" [value]="specialite._id">{{ specialite.name }}</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label for="filter-status">Statut</label>
-        <select id="filter-status" [(ngModel)]="filters.status" (change)="filterDevoirs()">
-          <option value="">Tous les statuts</option>
-          <option value="active">Actifs</option>
-          <option value="expired">Expirés</option>
-          <option value="upcoming">À venir</option>
-        </select>
-      </div>
-      <button class="btn-secondary" (click)="resetFilters()">
-        <i class="fas fa-redo"></i> Réinitialiser
-      </button>
-    </div>
-
-    <!-- Tabs -->
-    <div class="tabs-container">
-      <div class="tab" [class.active]="activeTab === 'all'" (click)="setActiveTab('all')">
-        <i class="fas fa-list"></i> Tous les devoirs
-      </div>
-      <div class="tab" [class.active]="activeTab === 'active'" (click)="setActiveTab('active')">
-        <i class="fas fa-clock"></i> Devoirs actifs
-        <span class="badge" *ngIf="activeCount > 0">{{ activeCount }}</span>
-      </div>
-      <div class="tab" [class.active]="activeTab === 'submitted'" (click)="setActiveTab('submitted')">
-        <i class="fas fa-check-circle"></i> Soumissions à évaluer
-        <span class="badge" *ngIf="submissionsCount > 0">{{ submissionsCount }}</span>
-      </div>
-    </div>
-
-    <!-- Content Header -->
-    <div class="section-header">
-      <h2>{{ getTabTitle() }}</h2>
-      <div class="view-options">
-        <button [class.active]="viewMode === 'grid'" (click)="viewMode = 'grid'">
-          <i class="fas fa-th-large"></i>
-        </button>
-        <button [class.active]="viewMode === 'list'" (click)="viewMode = 'list'">
-          <i class="fas fa-list"></i>
+      <div class="filter-actions">
+        <button class="btn btn-secondary" (click)="resetFilters()">
+          <i class="fas fa-redo"></i> Réinitialiser
         </button>
       </div>
     </div>
 
-    <!-- Grid View -->
-    <div class="devoirs-grid" *ngIf="viewMode === 'grid' && filteredDevoirs.length > 0">
-      <div class="devoir-card" *ngFor="let devoir of filteredDevoirs">
-        <div class="devoir-card-header" [ngClass]="{
-          'active': isDevoirActive(devoir),
-          'expired': isDevoirExpired(devoir),
-          'upcoming': isDevoirUpcoming(devoir)
-        }">
-          <div class="devoir-status">
-            <i class="fas" [ngClass]="{
-              'fa-clock': isDevoirActive(devoir),
-              'fa-calendar-times': isDevoirExpired(devoir),
-              'fa-calendar-alt': isDevoirUpcoming(devoir)
-            }"></i>
-            <span>{{ getDevoirStatus(devoir) }}</span>
-          </div>
-          <div class="devoir-actions">
-            <button class="action-button" (click)="viewDevoirDetails(devoir)">
-              <i class="fas fa-eye"></i>
-            </button>
-            <button class="action-button" (click)="editDevoir(devoir)">
-              <i class="fas fa-edit"></i>
-            </button>
-            <button class="action-button delete" (click)="deleteDevoir(devoir)">
-              <i class="fas fa-trash"></i>
-            </button>
-          </div>
-        </div>
-        <div class="devoir-card-body">
-          <h3>{{ devoir.title }}</h3>
-          <div class="devoir-meta">
-            <div class="meta-item">
-              <i class="fas fa-book"></i> {{ getCourTitle(devoir.cour) }}
-            </div>
-            <div class="meta-item">
-              <i class="fas fa-calendar"></i> {{ devoir.dueDate | date:'dd/MM/yyyy' }}
-            </div>
-          </div>
-          <p class="devoir-description">{{ devoir.description | slice:0:100 }}{{ devoir.description.length > 100 ? '...' : '' }}</p>
-          <div class="devoir-tags">
-            <span class="tag">{{ getDepartementName(devoir.departement) }}</span>
-            <span class="tag">{{ getNiveauName(devoir.niveau) }}</span>
-            <span class="tag">{{ getSpecialiteName(devoir.specialite) }}</span>
-          </div>
-        </div>
-        <div class="devoir-card-footer">
-          <div class="devoir-stats">
-            <span><i class="fas fa-users"></i> {{ devoir.assignedCount || 0 }} étudiants</span>
-            <span><i class="fas fa-file"></i> {{ devoir.submissionsCount || 0 }} soumissions</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- List View -->
-    <div class="devoir-list" *ngIf="viewMode === 'list' && filteredDevoirs.length > 0">
-      <table>
-        <thead>
-          <tr>
-            <th>Titre</th>
-            <th>Cours</th>
-            <th>Date limite</th>
-            <th>Département</th>
-            <th>Niveau</th>
-            <th>Spécialité</th>
-            <th>Statut</th>
-            <th>Soumissions</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let devoir of filteredDevoirs" [ngClass]="{
-            'active-row': isDevoirActive(devoir),
-            'expired-row': isDevoirExpired(devoir),
-            'upcoming-row': isDevoirUpcoming(devoir)
-          }">
-            <td>{{ devoir.title }}</td>
-            <td>{{ getCourTitle(devoir.cour) }}</td>
-            <td>{{ devoir.dueDate | date:'dd/MM/yyyy' }}</td>
-            <td>{{ getDepartementName(devoir.departement) }}</td>
-            <td>{{ getNiveauName(devoir.niveau) }}</td>
-            <td>{{ getSpecialiteName(devoir.specialite) }}</td>
-            <td>
-              <span class="status-badge" [ngClass]="{
-                'active': isDevoirActive(devoir),
-                'expired': isDevoirExpired(devoir),
-                'upcoming': isDevoirUpcoming(devoir)
-              }">{{ getDevoirStatus(devoir) }}</span>
-            </td>
-            <td>{{ devoir.submissionsCount || 0 }}/{{ devoir.assignedCount || 0 }}</td>
-            <td class="actions-cell">
-              <button class="action-button" (click)="viewDevoirDetails(devoir)">
+    <!-- Devoir List -->
+    <div class="devoir-list" *ngIf="filteredDevoirs.length > 0">
+      <h2 class="section-title">
+        <i class="fas fa-list"></i> Liste de mes devoirs
+      </h2>
+      <div class="devoir-grid">
+        <div class="devoir-card" *ngFor="let devoir of filteredDevoirs">
+          <div class="devoir-card-header">
+            <h3 class="devoir-card-title">{{ devoir.title }}</h3>
+            <div class="devoir-card-actions">
+              <button class="btn btn-icon btn-secondary" title="Aperçu" (click)="openStudentModal(devoir)">
                 <i class="fas fa-eye"></i>
               </button>
-              <button class="action-button" (click)="editDevoir(devoir)">
+              <button class="btn btn-icon btn-secondary" title="Modifier" (click)="openDevoirModal(devoir)">
                 <i class="fas fa-edit"></i>
               </button>
-              <button class="action-button delete" (click)="deleteDevoir(devoir)">
+              <button class="btn btn-icon btn-secondary" title="Supprimer" (click)="deleteDevoir(devoir)">
                 <i class="fas fa-trash"></i>
               </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </div>
+          </div>
+          <div class="devoir-card-body">
+            <p class="devoir-card-description">{{ devoir.description }}</p>
+            <div class="devoir-card-info">
+              <div class="info-item">
+                <i class="fas fa-book"></i>
+                <span>{{ devoir.subject }}</span>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-tag"></i>
+                <span>Type: 
+                  <span class="devoir-type-badge" [ngClass]="getTypeClass(devoir.type)">
+                    {{ devoir.type }}
+                  </span>
+                </span>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Créé le {{ formatDate(devoir.createdAt) }}</span>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-clock"></i>
+                <span>Date limite: {{ formatDate(devoir.dueDate) }}</span>
+              </div>
+              <div class="info-item" *ngIf="devoir.file">
+                <i class="fas fa-file-pdf"></i>
+                <span>Fichier: {{ devoir.fileName }}</span>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-users"></i>
+                <span>{{ devoir.responseCount || 0 }}/{{ devoir.students?.length || 0 }} réponses</span>
+              </div>
+            </div>
+          </div>
+          <div class="devoir-card-footer">
+            <div class="response-rate">
+              <div class="progress-bar">
+                <div 
+                  class="progress-fill" 
+                  [ngClass]="{
+                    'high': getResponseRate(devoir) >= 70,
+                    'medium': getResponseRate(devoir) >= 40 && getResponseRate(devoir) < 70,
+                    'low': getResponseRate(devoir) < 40
+                  }"
+                  [style.width.%]="getResponseRate(devoir)"
+                ></div>
+              </div>
+              <span class="progress-text">{{ getResponseRate(devoir) }}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Empty State -->
     <div class="empty-state" *ngIf="filteredDevoirs.length === 0">
-      <i class="fas fa-tasks"></i>
-      <p>Aucun devoir trouvé</p>
-      <button class="btn-primary" (click)="showModal('nouveauDevoir')">
+      <div class="empty-icon">
+        <i class="fas fa-file-alt"></i>
+      </div>
+      <h3>Aucun devoir trouvé</h3>
+      <p>Vous n'avez pas encore créé de devoir ou aucun devoir ne correspond à vos critères de recherche.</p>
+      <button class="btn btn-primary" (click)="openDevoirModal()">
         <i class="fas fa-plus"></i> Créer un devoir
       </button>
     </div>
   </div>
 </div>
 
-<!-- Nouveau Devoir Modal -->
-<div class="modal-overlay" *ngIf="activeModal === 'nouveauDevoir'">
+<!-- Devoir Modal -->
+<div class="modal-overlay" *ngIf="showDevoirModal">
   <div class="modal-container">
     <div class="modal-header">
-      <h2>{{ editMode ? 'Modifier le devoir' : 'Ajouter un nouveau devoir' }}</h2>
-      <button class="close-button" (click)="hideModal()">
+      <h2>{{ editMode ? '✏️ Modifier le devoir' : '✨ Créer un nouveau devoir' }}</h2>
+      <button class="modal-close" (click)="closeDevoirModal()">
         <i class="fas fa-times"></i>
       </button>
     </div>
@@ -299,317 +300,352 @@
       <form [formGroup]="devoirForm">
         <div class="form-group">
           <label for="devoir-title">Titre du devoir</label>
-          <input type="text" id="devoir-title" formControlName="title" placeholder="Entrez le titre du devoir">
+          <input 
+            type="text" 
+            id="devoir-title" 
+            class="form-control" 
+            formControlName="title" 
+            placeholder="Entrez le titre du devoir"
+            [ngClass]="{'is-invalid': devoirForm.get('title')?.invalid && devoirForm.get('title')?.touched}"
+          >
+          <div class="invalid-feedback" *ngIf="devoirForm.get('title')?.invalid && devoirForm.get('title')?.touched">
+            Le titre du devoir est requis
+          </div>
         </div>
+        
         <div class="form-group">
           <label for="devoir-description">Description</label>
-          <textarea id="devoir-description" formControlName="description" placeholder="Entrez une description du devoir" rows="4"></textarea>
+          <textarea 
+            id="devoir-description" 
+            class="form-control" 
+            formControlName="description" 
+            placeholder="Entrez une description du devoir"
+            rows="3"
+            [ngClass]="{'is-invalid': devoirForm.get('description')?.invalid && devoirForm.get('description')?.touched}"
+          ></textarea>
+          <div class="invalid-feedback" *ngIf="devoirForm.get('description')?.invalid && devoirForm.get('description')?.touched">
+            La description du devoir est requise
+          </div>
         </div>
+        
         <div class="form-group">
-          <label for="devoir-cour">Cours associé</label>
-          <select id="devoir-cour" formControlName="cour" (change)="onCourChange($event)">
-            <option value="">Sélectionnez un cours</option>
-            <option *ngFor="let cour of filteredCours" [value]="cour._id">{{ cour.title }}</option>
+          <label for="devoir-subject">Matière</label>
+          <select 
+            id="devoir-subject" 
+            class="form-control" 
+            formControlName="subject"
+            [ngClass]="{'is-invalid': devoirForm.get('subject')?.invalid && devoirForm.get('subject')?.touched}"
+          >
+            <option value="">Sélectionnez une matière</option>
+            <option *ngFor="let subject of getUniqueSubjects()" [value]="subject">{{ subject }}</option>
           </select>
+          <div class="invalid-feedback" *ngIf="devoirForm.get('subject')?.invalid && devoirForm.get('subject')?.touched">
+            La matière est requise
+          </div>
         </div>
+
+        <!-- Champ de type dans le formulaire de devoir -->
         <div class="form-group">
-          <label for="devoir-departement">Département</label>
-          <select id="devoir-departement" formControlName="departement" (change)="onFormDepartementChange($event)">
-            <option value="">Sélectionnez un département</option>
-            <option *ngFor="let dept of departements" [value]="dept._id">{{ dept.name }}</option>
+          <label for="devoir-type">Type de devoir</label>
+          <select 
+            id="devoir-type" 
+            class="form-control" 
+            formControlName="type"
+            [ngClass]="{'is-invalid': devoirForm.get('type')?.invalid && devoirForm.get('type')?.touched}"
+          >
+            <option value="Cours">Cours</option>
+            <option value="TD">TD</option>
+            <option value="TP">TP</option>
           </select>
+          <div class="invalid-feedback" *ngIf="devoirForm.get('type')?.invalid && devoirForm.get('type')?.touched">
+            Le type de devoir est requis
+          </div>
         </div>
-        <div class="form-group">
-          <label for="devoir-niveau">Niveau</label>
-          <select id="devoir-niveau" formControlName="niveau">
-            <option value="">Sélectionnez un niveau</option>
-            <option *ngFor="let niveau of niveaux" [value]="niveau._id">{{ niveau.name }}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="devoir-specialite">Spécialité</label>
-          <select id="devoir-specialite" formControlName="specialite">
-            <option value="">Sélectionnez une spécialité</option>
-            <option *ngFor="let specialite of formFilteredSpecialites" [value]="specialite._id">{{ specialite.name }}</option>
-          </select>
-        </div>
+        
         <div class="form-group">
           <label for="devoir-dueDate">Date limite</label>
-          <input type="date" id="devoir-dueDate" formControlName="dueDate">
+          <input 
+            type="date" 
+            id="devoir-dueDate" 
+            class="form-control" 
+            formControlName="dueDate"
+            [ngClass]="{'is-invalid': devoirForm.get('dueDate')?.invalid && devoirForm.get('dueDate')?.touched}"
+          >
+          <div class="invalid-feedback" *ngIf="devoirForm.get('dueDate')?.invalid && devoirForm.get('dueDate')?.touched">
+            La date limite est requise
+          </div>
         </div>
+        
         <div class="form-group">
           <label for="devoir-file">Fichier du devoir</label>
-          <input type="file" id="devoir-file" #devoirFileInput (change)="onDevoirFileChange($event)" class="file-input">
-          <div class="file-input-wrapper">
-            <span class="file-name">{{ devoirFile ? devoirFile.name : 'Aucun fichier sélectionné' }}</span>
-            <button type="button" class="file-button" (click)="devoirFileInput.click()">Parcourir</button>
+          <div class="file-upload-container">
+            <input 
+              type="file" 
+              id="devoir-file" 
+              class="file-input" 
+              #fileInput
+              (change)="onFileSelected($event)"
+            >
+            <div class="file-upload-ui">
+              <span class="file-name">{{ selectedFile ? selectedFile.name : 'Aucun fichier sélectionné' }}</span>
+              <button type="button" class="btn btn-secondary" (click)="fileInput.click()">
+                <i class="fas fa-upload"></i> Parcourir
+              </button>
+            </div>
           </div>
-        </div>
-        <div class="form-group checkbox-group">
-          <input type="checkbox" id="notify-etudiants" formControlName="notifyEtudiants">
-          <label for="notify-etudiants">Notifier les étudiants par email</label>
         </div>
       </form>
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" (click)="hideModal()">Annuler</button>
-      <button class="btn-primary" [disabled]="!devoirForm.valid" (click)="submitDevoirForm()">{{ editMode ? 'Mettre à jour' : 'Ajouter' }}</button>
+      <button class="btn btn-secondary" (click)="closeDevoirModal()">Annuler</button>
+      <button 
+        class="btn btn-primary" 
+        [disabled]="devoirForm.invalid" 
+        (click)="submitDevoir()"
+      >
+        {{ editMode ? 'Mettre à jour' : 'Créer' }}
+      </button>
     </div>
   </div>
 </div>
 
-<!-- Confirmation Modal -->
-<div class="modal-overlay" *ngIf="activeModal === 'confirmation'">
-  <div class="modal-container">
+<!-- Student List Modal -->
+<div class="modal-overlay" *ngIf="showStudentModal">
+  <div class="modal-container modal-large">
     <div class="modal-header">
-      <h2>Confirmation</h2>
-      <button class="close-button" (click)="hideModal()">
+      <h2>Aperçu du devoir: {{ selectedDevoir?.title }}</h2>
+      <button class="modal-close" (click)="closeStudentModal()">
         <i class="fas fa-times"></i>
       </button>
     </div>
     <div class="modal-body">
-      <p>Êtes-vous sûr de vouloir supprimer ce devoir ? Cette action est irréversible.</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-secondary" (click)="hideModal()">Annuler</button>
-      <button class="btn-destructive" (click)="confirmDeleteDevoir()">Supprimer</button>
-    </div>
-  </div>
-</div>
-
-<!-- Détails du Devoir Modal -->
-<div class="modal-overlay" *ngIf="activeModal === 'devoirDetails' && selectedDevoir">
-  <div class="modal-container large">
-    <div class="modal-header">
-      <h2>Détails du devoir</h2>
-      <button class="close-button" (click)="hideModal()">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-    <div class="modal-body">
-      <div class="devoir-header" [ngClass]="{
-        'active': isDevoirActive(selectedDevoir),
-        'expired': isDevoirExpired(selectedDevoir),
-        'upcoming': isDevoirUpcoming(selectedDevoir)
-      }">
-        <h3>{{ selectedDevoir.title }}</h3>
-        <div class="devoir-meta">
-          <div class="meta-item">
-            <i class="fas fa-book"></i> {{ getCourTitle(selectedDevoir.cour) }}
-          </div>
-          <div class="meta-item">
-            <i class="fas fa-calendar"></i> Date limite: {{ selectedDevoir.dueDate | date:'dd/MM/yyyy' }}
-          </div>
-          <span class="status-badge" [ngClass]="{
-            'active': isDevoirActive(selectedDevoir),
-            'expired': isDevoirExpired(selectedDevoir),
-            'upcoming': isDevoirUpcoming(selectedDevoir)
-          }">{{ getDevoirStatus(selectedDevoir) }}</span>
-        </div>
-      </div>
-
       <div class="devoir-details">
-        <div class="detail-section">
-          <h4>Description:</h4>
-          <p>{{ selectedDevoir.description || 'Aucune description disponible' }}</p>
+        <div class="devoir-info">
+          <div class="devoir-info-header">
+            <h3>Informations du devoir</h3>
+            <span class="devoir-type-badge large" [ngClass]="getTypeClass(selectedDevoir?.type || '')">
+              {{ selectedDevoir?.type }}
+            </span>
+          </div>
+          <div class="devoir-info-content">
+            <div class="info-row">
+              <div class="info-label">Description:</div>
+              <div class="info-value">{{ selectedDevoir?.description }}</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Matière:</div>
+              <div class="info-value">{{ selectedDevoir?.subject }}</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Date limite:</div>
+              <div class="info-value">{{ selectedDevoir?.dueDate ? formatDate(selectedDevoir?.dueDate) : '-' }}</div>
+            </div>
+            <div class="info-row" *ngIf="selectedDevoir?.file">
+              <div class="info-label">Fichier:</div>
+              <div class="info-value file-download">
+                <i class="fas fa-file-pdf"></i>
+                <span>{{ selectedDevoir?.fileName }}</span>
+                <div class="file-actions">
+                  <button class="btn btn-sm btn-secondary" (click)="openPdfPreviewModal(selectedDevoir?.file || '', selectedDevoir?.fileName || '')">
+                    <i class="fas fa-eye"></i> Aperçu
+                  </button>
+                  <button class="btn btn-sm btn-secondary" (click)="downloadFile(selectedDevoir?.file || '', selectedDevoir?.fileName || '')">
+                    <i class="fas fa-download"></i> Télécharger
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="detail-grid">
-          <div class="detail-item">
-            <h4>Département:</h4>
-            <p>{{ getDepartementName(selectedDevoir.departement) }}</p>
-          </div>
-          <div class="detail-item">
-            <h4>Niveau:</h4>
-            <p>{{ getNiveauName(selectedDevoir.niveau) }}</p>
-          </div>
-          <div class="detail-item">
-            <h4>Spécialité:</h4>
-            <p>{{ getSpecialiteName(selectedDevoir.specialite) }}</p>
-          </div>
-          <div class="detail-item">
-            <h4>Créé le:</h4>
-            <p>{{ selectedDevoir.createdAt | date:'dd/MM/yyyy' }}</p>
-          </div>
-        </div>
-        <div class="detail-section" *ngIf="selectedDevoir.file">
-          <h4>Fichier joint:</h4>
-          <div class="file-preview">
-            <i class="fas fa-file-alt"></i>
-            <span>{{ selectedDevoir.fileName }}</span>
-            <button class="btn-outline" (click)="downloadDevoirFile(selectedDevoir)">
-              <i class="fas fa-download"></i> Télécharger
-            </button>
-          </div>
-        </div>
-      </div>
 
-      <div class="tabs-container">
-        <div class="tab" [class.active]="detailsTab === 'submissions'" (click)="setDetailsTab('submissions')">
-          <i class="fas fa-file-alt"></i> Soumissions
-          <span class="badge">{{ selectedDevoir.submissions?.length || 0 }}</span>
-        </div>
-        <div class="tab" [class.active]="detailsTab === 'etudiants'" (click)="setDetailsTab('etudiants')">
-          <i class="fas fa-user-graduate"></i> Étudiants assignés
-          <span class="badge">{{ selectedDevoir.assignedCount || 0 }}</span>
-        </div>
-      </div>
-
-      <div class="tab-content" *ngIf="detailsTab === 'submissions'">
-        <div class="tab-header">
-          <h4>Soumissions des étudiants</h4>
-          <div class="search-bar">
-            <i class="fas fa-search"></i>
-            <input type="text" placeholder="Rechercher une soumission..." [(ngModel)]="submissionSearchTerm" (input)="filterSubmissions()">
+        <div class="student-list-header">
+          <h3 class="student-list-title">Liste des étudiants</h3>
+          <div class="student-list-stats">
+            <div class="student-stat">
+              <div class="student-stat-value">{{ selectedDevoir?.students?.length || 0 }}</div>
+              <div class="student-stat-label">Total</div>
+            </div>
+            <div class="student-stat">
+              <div class="student-stat-value">{{ selectedDevoir?.responseCount || 0 }}</div>
+              <div class="student-stat-label">Réponses</div>
+            </div>
+            <div class="student-stat">
+              <div class="student-stat-value">{{ getResponseRate(selectedDevoir!) }}%</div>
+              <div class="student-stat-label">Taux</div>
+            </div>
           </div>
         </div>
-        <div class="submissions-list" *ngIf="filteredSubmissions.length > 0">
-          <table>
-            <thead>
-              <tr>
-                <th>Étudiant</th>
-                <th>Date de soumission</th>
-                <th>Statut</th>
-                <th>Note</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let submission of filteredSubmissions">
-                <td>{{ submission.etudiantName }}</td>
-                <td>{{ submission.submittedAt | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td>
-                  <span class="status-badge" [ngClass]="submission.evaluated ? 'evaluated' : 'pending'">
-                    {{ submission.evaluated ? 'Évalué' : 'En attente' }}
-                  </span>
-                </td>
-                <td>{{ submission.note !== undefined ? submission.note + '/20' : '-' }}</td>
-                <td class="actions-cell">
-                  <button class="action-button" (click)="viewSubmission(submission)">
-                    <i class="fas fa-eye"></i>
-                  </button>
-                  <button class="action-button" (click)="evaluateSubmission(submission)">
-                    <i class="fas fa-check"></i>
-                  </button>
-                  <button class="action-button" (click)="downloadSubmission(submission)" *ngIf="submission.file">
-                    <i class="fas fa-download"></i>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="empty-state" *ngIf="filteredSubmissions.length === 0">
-          <i class="fas fa-file-alt"></i>
-          <p>Aucune soumission trouvée</p>
-        </div>
-      </div>
-
-      <div class="tab-content" *ngIf="detailsTab === 'etudiants'">
-        <div class="tab-header">
-          <h4>Étudiants assignés</h4>
-          <div class="search-bar">
-            <i class="fas fa-search"></i>
-            <input type="text" placeholder="Rechercher un étudiant..." [(ngModel)]="etudiantSearchTerm" (input)="filterEtudiants()">
+        
+        <div class="student-list-filters">
+          <div class="student-filter">
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Rechercher un étudiant..."
+            >
+          </div>
+          <div class="student-filter">
+            <select class="form-control">
+              <option value="">Tous les groupes</option>
+              <option value="G1.1">G1.1</option>
+              <option value="G1.2">G1.2</option>
+              <option value="G1.3">G1.3</option>
+              <option value="G2.1">G2.1</option>
+              <option value="G2.2">G2.2</option>
+              <option value="G2.3">G2.3</option>
+            </select>
           </div>
         </div>
-        <div class="etudiants-list" *ngIf="filteredEtudiants.length > 0">
-          <table>
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Email</th>
-                <th>Matricule</th>
-                <th>Niveau</th>
-                <th>Spécialité</th>
-                <th>Statut</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let etudiant of filteredEtudiants">
-                <td>{{ etudiant.name }}</td>
-                <td>{{ etudiant.email }}</td>
-                <td>{{ etudiant.matricule }}</td>
-                <td>{{ getNiveauName(etudiant.niveau) }}</td>
-                <td>{{ getSpecialiteName(etudiant.specialite) }}</td>
-                <td>
-                  <span class="status-badge" [ngClass]="etudiant.submitted ? 'submitted' : 'not-submitted'">
-                    {{ etudiant.submitted ? 'Soumis' : 'Non soumis' }}
-                  </span>
-                </td>
-                <td class="actions-cell">
-                  <button class="action-button" (click)="viewEtudiantDetails(etudiant)">
-                    <i class="fas fa-eye"></i>
-                  </button>
-                  <button class="action-button" (click)="sendReminderToEtudiant(etudiant)" *ngIf="!etudiant.submitted">
-                    <i class="fas fa-bell"></i>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="empty-state" *ngIf="filteredEtudiants.length === 0">
-          <i class="fas fa-user-graduate"></i>
-          <p>Aucun étudiant assigné</p>
-        </div>
+        
+        <table class="student-table">
+          <thead>
+            <tr>
+              <th>Nom et prénom</th>
+              <th>Groupe</th>
+              <th>Date de soumission</th>
+              <th>Note</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let student of selectedDevoir?.students">
+              <td>{{ student.name }}</td>
+              <td>{{ student.group }}</td>
+              <td>{{ student.submissionDate ? formatDate(student.submissionDate) : '-' }}</td>
+              <td>
+                <div 
+                  *ngIf="student.score" 
+                  class="student-score"
+                  [ngClass]="{
+                    'high': student.score >= 70,
+                    'medium': student.score >= 50 && student.score < 70,
+                    'low': student.score < 50
+                  }"
+                >
+                  {{ student.score }}/100
+                </div>
+                <div *ngIf="!student.score">-</div>
+              </td>
+              <td>
+                <button 
+                  class="btn btn-secondary btn-sm" 
+                  [disabled]="!student.hasResponded"
+                  (click)="openResponseModal(student)"
+                >
+                  <i class="fas fa-eye"></i> Voir réponse
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" (click)="hideModal()">Fermer</button>
-      <button class="btn-primary" *ngIf="selectedDevoir" (click)="editDevoir(selectedDevoir)">Modifier le devoir</button>
+      <button class="btn btn-secondary" (click)="closeStudentModal()">Fermer</button>
     </div>
   </div>
 </div>
 
-<!-- Evaluation Modal -->
-<div class="modal-overlay" *ngIf="activeModal === 'evaluation' && selectedSubmission">
+<!-- Student Response Modal -->
+<div class="modal-overlay" *ngIf="showResponseModal">
   <div class="modal-container">
     <div class="modal-header">
-      <h2>Évaluer la soumission</h2>
-      <button class="close-button" (click)="hideModal()">
+      <h2>Réponse de {{ selectedStudent?.name }}</h2>
+      <button class="modal-close" (click)="closeResponseModal()">
         <i class="fas fa-times"></i>
       </button>
     </div>
     <div class="modal-body">
-      <div class="submission-info">
-        <div class="info-item">
-          <h4>Étudiant:</h4>
-          <p>{{ selectedSubmission.etudiantName }}</p>
+      <div class="student-response-header">
+        <div class="student-info">
+          <div class="info-item">
+            <i class="fas fa-user"></i>
+            <span>{{ selectedStudent?.name }}</span>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-users"></i>
+            <span>Groupe: {{ selectedStudent?.group }}</span>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-calendar-check"></i>
+            <span>Soumis le: {{ selectedStudent?.submissionDate ? formatDate(selectedStudent?.submissionDate) : '-' }}</span>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-award"></i>
+            <span>Note: {{ selectedStudent?.score }}/100</span>
+          </div>
         </div>
-        <div class="info-item">
-          <h4>Date de soumission:</h4>
-          <p>{{ selectedSubmission.submittedAt | date:'dd/MM/yyyy HH:mm' }}</p>
-        </div>
-        <div class="info-item" *ngIf="selectedSubmission.file">
-          <h4>Fichier:</h4>
+      </div>
+      
+      <div class="response-content">
+        <div class="response-file" *ngIf="selectedStudent?.file">
+          <h4>Fichier soumis</h4>
           <div class="file-preview">
-            <i class="fas fa-file-alt"></i>
-            <span>{{ selectedSubmission.fileName }}</span>
-            <button class="btn-outline" (click)="downloadSubmission(selectedSubmission)">
-              <i class="fas fa-download"></i> Télécharger
+            <i class="fas fa-file-pdf"></i>
+            <span>{{ selectedStudent?.fileName }}</span>
+            <div class="file-actions">
+              <button class="btn btn-secondary btn-sm" (click)="openPdfPreviewModal(selectedStudent?.file || '', selectedStudent?.fileName || '')">
+                <i class="fas fa-eye"></i> Aperçu
+              </button>
+              <button class="btn btn-secondary btn-sm" (click)="downloadFile(selectedStudent?.file || '', selectedStudent?.fileName || '')">
+                <i class="fas fa-download"></i> Télécharger
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="response-feedback" *ngIf="selectedStudent?.feedback">
+          <h4>Commentaire de l'enseignant</h4>
+          <div class="feedback-content">
+            {{ selectedStudent?.feedback }}
+          </div>
+        </div>
+        
+        <div class="response-evaluation">
+          <h4>Évaluation</h4>
+          <div class="evaluation-form">
+            <div class="form-group">
+              <label for="note">Note (sur 100)</label>
+              <input type="number" id="note" class="form-control" min="0" max="100" [value]="selectedStudent?.score || ''">
+            </div>
+            <div class="form-group">
+              <label for="feedback">Commentaire</label>
+              <textarea id="feedback" class="form-control" rows="4" [value]="selectedStudent?.feedback || ''"></textarea>
+            </div>
+            <button class="btn btn-primary">
+              <i class="fas fa-save"></i> Enregistrer l'évaluation
             </button>
           </div>
         </div>
       </div>
-      <form [formGroup]="evaluationForm">
-        <div class="form-group">
-          <label for="evaluation-note">Note (sur 20)</label>
-          <input type="number" id="evaluation-note" formControlName="note" min="0" max="20">
-        </div>
-        <div class="form-group">
-          <label for="evaluation-feedback">Commentaire</label>
-          <textarea id="evaluation-feedback" formControlName="feedback" rows="4"></textarea>
-        </div>
-        <div class="form-group checkbox-group">
-          <input type="checkbox" id="notify-etudiant" formControlName="notifyEtudiant">
-          <label for="notify-etudiant">Notifier l'étudiant par email</label>
-        </div>
-      </form>
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" (click)="hideModal()">Annuler</button>
-      <button class="btn-primary" [disabled]="!evaluationForm.valid" (click)="submitEvaluation()">Enregistrer l'évaluation</button>
+      <button class="btn btn-secondary" (click)="closeResponseModal()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- PDF Preview Modal -->
+<div class="modal-overlay" *ngIf="showPdfPreviewModal">
+  <div class="modal-container modal-large pdf-preview-container">
+    <div class="modal-header">
+      <h2>Aperçu du fichier: {{ previewFileName }}</h2>
+      <button class="modal-close" (click)="closePdfPreviewModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body pdf-viewer-wrapper">
+      <!-- Intégration d'un visualiseur PDF -->
+      <div class="pdf-viewer">
+        <!-- Dans une application réelle, ceci serait remplacé par un vrai visualiseur PDF -->
+        <iframe class="pdf-iframe" src="assets/pdf-viewer.html" frameborder="0"></iframe>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="downloadFile(previewFile || '', previewFileName || '')">
+        <i class="fas fa-download"></i> Télécharger
+      </button>
+      <button class="btn btn-secondary" (click)="closePdfPreviewModal()">Fermer</button>
     </div>
   </div>
 </div>

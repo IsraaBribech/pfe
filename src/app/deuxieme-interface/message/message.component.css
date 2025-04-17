@@ -4,10 +4,12 @@
   --primary-color: #6366f1;
   --primary-light: rgba(99, 102, 241, 0.1);
   --secondary-color: #f59e0b;
+  --secondary-light: rgba(245, 158, 11, 0.1);
+  --success-color: #10b981;
+  --success-light: rgba(16, 185, 129, 0.1);
   --dark-color: #1e293b;
   --light-color: #f8fafc;
   --danger-color: #ef4444;
-  --success-color: #10b981;
   --text-dark: #334155;
   --text-light: #94a3b8;
   --border-color: #e2e8f0;
@@ -18,10 +20,12 @@
   --header-height: 70px;
 
   font-family: "Poppins", sans-serif;
+  display: block;
+  width: 100%;
 }
 
 /* Container Layout */
-.enseignant-container {
+.dashboard-container {
   display: flex;
   min-height: 100vh;
   background-color: #f1f5f9;
@@ -69,6 +73,34 @@
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--dark-color);
+}
+
+/* Style pour le bouton de profil */
+.profile-button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem;
+  background-color: var(--primary-light);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: left;
+}
+
+.profile-button:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.profile-button:hover .enseignant-avatar {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.profile-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
 }
 
 .enseignant-info {
@@ -154,6 +186,127 @@
   color: var(--primary-color);
 }
 
+/* Styles pour les sous-menus */
+.submenu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+}
+
+.submenu.visible {
+  max-height: 1000px; /* Valeur suffisamment grande pour contenir tout le contenu */
+  opacity: 1;
+}
+
+.submenu.nested {
+  margin-left: 2rem;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.submenu.nested.visible {
+  max-height: 1000px;
+  opacity: 1;
+}
+
+.submenu-icon {
+  margin-left: auto;
+  transition: transform 0.3s ease;
+}
+
+.submenu-icon.rotate {
+  transform: rotate(180deg);
+}
+
+/* Styles pour les éléments de sous-menu */
+.submenu li {
+  padding-left: 1rem;
+  font-size: 0.85rem;
+}
+
+.submenu.nested li {
+  padding-left: 0.5rem;
+  font-size: 0.8rem;
+}
+
+/* Styles pour les éléments de matière dans le menu */
+.matiere-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 0.5rem;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  transition: var(--transition);
+  background-color: white;
+  border: 1px solid var(--border-color);
+}
+
+.matiere-menu-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+  background-color: var(--primary-light);
+}
+
+.matiere-menu-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+  color: white;
+  font-size: 1rem;
+}
+
+.matiere-menu-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.matiere-menu-title {
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: var(--text-dark);
+  margin-bottom: 0.25rem;
+}
+
+.matiere-menu-details {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+}
+
+.matiere-menu-niveau {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.matiere-menu-type {
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* Styles pour les types de cours dans le menu */
+.cours-type {
+  background-color: var(--primary-color);
+}
+
+.td-type {
+  background-color: var(--secondary-color);
+}
+
+.tp-type {
+  background-color: var(--success-color);
+}
+
 /* Main Content */
 .main-content {
   flex: 1;
@@ -203,6 +356,246 @@
   color: var(--text-light);
 }
 
+/* Notification icon */
+.notification-icon {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.notification-icon i {
+  font-size: 1.1rem;
+  color: var(--text-light);
+}
+
+.notification-icon:hover {
+  background-color: var(--primary-light);
+}
+
+.notification-icon:hover i {
+  color: var(--primary-color);
+}
+
+.badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: var(--danger-color);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Notification Dropdown */
+.notification-dropdown {
+  position: absolute;
+  top: 45px;
+  right: -10px;
+  width: 320px;
+  max-height: 450px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.notification-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--dark-color);
+}
+
+.mark-all-read {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: var(--transition);
+}
+
+.mark-all-read:hover {
+  background-color: var(--primary-light);
+}
+
+.notification-list {
+  overflow-y: auto;
+  max-height: 350px;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  transition: var(--transition);
+  cursor: pointer;
+  position: relative;
+}
+
+.notification-item:hover {
+  background-color: var(--primary-light);
+}
+
+.notification-item.unread {
+  background-color: rgba(99, 102, 241, 0.05);
+}
+
+.notification-item.unread::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--primary-color);
+}
+
+.notification-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-sender {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--dark-color);
+  margin-bottom: 0.25rem;
+}
+
+.notification-message {
+  font-size: 0.813rem;
+  color: var(--text-dark);
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notification-time {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+.notification-delete {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-left: 0.5rem;
+  opacity: 0;
+}
+
+.notification-item:hover .notification-delete {
+  opacity: 1;
+}
+
+.notification-delete:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--danger-color);
+}
+
+.notification-footer {
+  padding: 0.75rem;
+  text-align: center;
+  border-top: 1px solid var(--border-color);
+}
+
+.notification-footer a {
+  color: var(--primary-color);
+  font-size: 0.875rem;
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.notification-footer a:hover {
+  text-decoration: underline;
+}
+
+.no-notifications {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--text-light);
+}
+
+.no-notifications i {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.5;
+}
+
+.no-notifications p {
+  font-size: 0.875rem;
+  margin: 0;
+}
+
 /* Message Tabs */
 .message-tabs {
   display: flex;
@@ -240,13 +633,9 @@
   font-size: 1rem;
 }
 
-.badge {
-  background-color: var(--danger-color);
-  color: white;
-  font-size: 0.7rem;
-  padding: 0.1rem 0.4rem;
-  border-radius: 10px;
-  margin-left: 0.25rem;
+.tab .badge {
+  position: static;
+  margin-left: 0.5rem;
 }
 
 /* Message List Container */
@@ -661,6 +1050,10 @@
 }
 
 /* File Input Styles */
+.file-input {
+  display: none;
+}
+
 .file-input-wrapper {
   display: flex;
   align-items: center;
@@ -787,6 +1180,12 @@
     margin-right: 0;
   }
 
+  /* Ajustement pour le bouton de profil en mode responsive */
+  .profile-button {
+    justify-content: center;
+    padding: 0.5rem 0;
+  }
+
   .main-content {
     margin-left: 80px;
   }
@@ -802,6 +1201,35 @@
 
   .sidebar-nav ul li span {
     display: none;
+  }
+
+  .submenu,
+  .submenu.nested {
+    margin-left: 0;
+    position: absolute;
+    left: 80px;
+    top: 0;
+    width: 200px;
+    background-color: white;
+    box-shadow: var(--shadow-md);
+    z-index: 100;
+    border-radius: 0 8px 8px 0;
+  }
+
+  .submenu li,
+  .submenu.nested li {
+    padding: 0.75rem 1rem;
+  }
+
+  .submenu li span,
+  .submenu.nested li span {
+    display: block;
+  }
+
+  /* Ajustement pour le dropdown de notifications */
+  .notification-dropdown {
+    width: 280px;
+    right: -80px;
   }
 }
 
@@ -823,13 +1251,13 @@
   .search-bar input {
     width: 200px;
   }
-}
 
-@media (max-width: 576px) {
   .message-tabs {
     flex-direction: column;
   }
+}
 
+@media (max-width: 576px) {
   .modal-container {
     width: 95%;
     margin: 1rem;
@@ -842,5 +1270,17 @@
   .header-actions {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  /* Ajustement pour le dropdown de notifications */
+  .notification-dropdown {
+    width: 100%;
+    right: 0;
+    left: 0;
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    border-radius: 12px 12px 0 0;
+    max-height: 80vh;
   }
 }

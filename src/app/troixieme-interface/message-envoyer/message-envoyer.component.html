@@ -3,10 +3,10 @@
   <div class="sidebar">
     <div class="sidebar-header">
       <div class="logo">
-        <img src="assets/images/isg.png" alt="Logo ISG EduLink" class="logo">
+        <img src="assets/images/isg.png" alt="Logo ISG EduLink" class="logo-img">
         <span class="logo-text">ISG EduLink</span>
       </div>
-      <!-- Bouton de profil modifié -->
+      <!-- Bouton de profil -->
       <button class="profile-button" routerLink="/troixieme-interface/eduprofil">
         <div class="enseignant-avatar">{{ etudiantName[0] }}</div>
         <div class="enseignant-details">
@@ -17,7 +17,7 @@
     </div>
     <nav class="sidebar-nav">
       <ul>
-        <li routerLink="/troixieme-interface" routerLinkActive="active">
+        <li routerLink="/troixieme-interface" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
           <i class="fas fa-home"></i>
           <span>Tableau de bord</span>
         </li>
@@ -37,6 +37,11 @@
           <i class="fas fa-envelope"></i>
           <span>Forum de discussion</span>
         </li>
+        <li routerLink="/troixieme-interface/notification" routerLinkActive="active">
+          <i class="fas fa-bell"></i>
+          <span>Notification</span>
+          <span class="badge" *ngIf="getUnreadNotificationsCount() > 0">{{ getUnreadNotificationsCount() }}</span>
+        </li>
       </ul>
     </nav>
   </div>
@@ -55,7 +60,49 @@
         <button class="btn-primary" (click)="changeTab('nouveau')">
           <i class="fas fa-plus"></i> Nouveau message
         </button>
-        <app-notification></app-notification>
+        
+        <!-- Notification avec dropdown - Toujours visible -->
+        <div class="notification-wrapper">
+          <div class="notification-btn" (click)="toggleNotificationDropdown($event)">
+            <i class="fas fa-bell"></i>
+            <span class="badge" *ngIf="getUnreadNotificationsCount() > 0">{{ getUnreadNotificationsCount() }}</span>
+          </div>
+          
+          <!-- Dropdown de notifications -->
+          <div class="notification-dropdown" *ngIf="showNotificationDropdown">
+            <div class="notification-header">
+              <h3>Notifications</h3>
+              <span class="notification-count">{{ getUnreadNotificationsCount() }} non lues</span>
+            </div>
+            
+            <div class="notification-list">
+              <div class="notification-empty" *ngIf="notifications.length === 0">
+                <i class="fas fa-bell-slash"></i>
+                <p>Aucune notification</p>
+              </div>
+              
+              <div class="notification-item" *ngFor="let notification of notifications.slice(0, 5)" 
+                   [class.unread]="!notification.read"
+                   (click)="markAsRead(notification)">
+                <div class="notification-item-icon" [class]="notification.type">
+                  <i [class]="'fas ' + getNotificationIcon(notification.type)"></i>
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">{{ notification.title }}</div>
+                  <div class="notification-message">{{ notification.message }}</div>
+                  <div class="notification-time">{{ formatTimeAgo(notification.date) }}</div>
+                </div>
+                <div class="notification-status" *ngIf="!notification.read"></div>
+              </div>
+            </div>
+            
+            <div class="notification-footer">
+              <button class="btn-view-all" (click)="navigateToNotifications()">
+                Voir toutes les notifications
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

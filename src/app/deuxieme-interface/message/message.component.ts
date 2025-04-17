@@ -1,5 +1,7 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
 
 interface Message {
   _id: string;
@@ -18,6 +20,15 @@ interface Message {
     url: string;
     size: number;
   }[];
+}
+
+interface Notification {
+  id: number;
+  sender: string;
+  message: string;
+  time: string;
+  read: boolean;
+  avatar?: string;
 }
 
 @Component({
@@ -59,13 +70,202 @@ export class MessageComponent implements OnInit {
   // Active Modal
   activeModal: string | null = null;
 
-  constructor(private fb: FormBuilder) {
+  // Notifications
+  showNotifications = false;
+  notificationCount = 0;
+  notifications: Notification[] = [
+    {
+      id: 1,
+      sender: 'Ahmed Benali',
+      message: 'J\'ai soumis mon devoir de programmation web',
+      time: 'Il y a 10 minutes',
+      read: false,
+      avatar: 'A'
+    },
+    {
+      id: 2,
+      sender: 'Fatima Zahra',
+      message: 'Question concernant le TP de bases de données',
+      time: 'Il y a 30 minutes',
+      read: false,
+      avatar: 'F'
+    },
+    {
+      id: 3,
+      sender: 'Mohamed Tazi',
+      message: 'Demande de rendez-vous pour discuter du projet',
+      time: 'Il y a 2 heures',
+      read: false,
+      avatar: 'M'
+    },
+    {
+      id: 4,
+      sender: 'Leila Kadiri',
+      message: 'Confirmation de présence pour la séance de rattrapage',
+      time: 'Il y a 5 heures',
+      read: true,
+      avatar: 'L'
+    }
+  ];
+
+  // États du menu - tous fermés par défaut
+  showCourSubmenu = false;
+  showSemestreSubmenu: { [key: number]: boolean } = { 1: false, 2: false };
+
+  // Matières par semestre avec ajout du type (Cours, TD, TP)
+  matieresSemestre1 = [
+    { id: 1, nom: "Programmation Web", departement: "Informatique", niveau: "Licence 3", type: "Cours", icon: "code" },
+    { id: 2, nom: "Bases de données", departement: "Informatique", niveau: "Licence 2", type: "TD", icon: "database" },
+    { id: 3, nom: "Algorithmes", departement: "Informatique", niveau: "Licence 1", type: "TP", icon: "microchip" },
+    { id: 4, nom: "Comptabilité", departement: "Gestion", niveau: "Licence 2", type: "Cours", icon: "file-invoice" },
+  ];
+
+  matieresSemestre2 = [
+    {
+      id: 5,
+      nom: "Développement Mobile",
+      departement: "Informatique",
+      niveau: "Licence 3",
+      type: "Cours",
+      icon: "mobile-alt",
+    },
+    {
+      id: 6,
+      nom: "Intelligence Artificielle",
+      departement: "Informatique",
+      niveau: "Master 1",
+      type: "TD",
+      icon: "brain",
+    },
+    { id: 7, nom: "Réseaux", departement: "Informatique", niveau: "Licence 2", type: "TP", icon: "network-wired" },
+    { id: 8, nom: "Marketing Digital", departement: "Gestion", niveau: "Licence 3", type: "Cours", icon: "chart-line" },
+  ];
+
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private route: ActivatedRoute,
+    private location: Location
+  ) {
     this.initializeForms();
+    
+    // Écouter les événements de navigation pour mettre à jour l'état actif
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.updateActiveState(event.url);
+      }
+    });
   }
 
   ngOnInit(): void {
     this.loadMockData();
     this.filterMessages();
+    this.updateNotificationCount();
+    
+    // Initialiser l'état actif en fonction de l'URL actuelle
+    this.updateActiveState(this.router.url);
+  }
+
+  // Mettre à jour l'état actif en fonction de l'URL
+  updateActiveState(url: string): void {
+    // Réinitialiser les états des sous-menus si on n'est pas sur la page correspondante
+    if (!url.includes('/cour')) {
+      this.showCourSubmenu = false;
+      this.showSemestreSubmenu = { 1: false, 2: false };
+    }
+  }
+
+  // Fermer les notifications quand on clique ailleurs
+  @HostListener('document:click', ['$event'])
+  clickOutside(event: Event): void {
+    const notificationIcon = document.querySelector('.notification-icon');
+    const notificationDropdown = document.querySelector('.notification-dropdown');
+
+    if (notificationIcon && notificationDropdown) {
+      if (!notificationIcon.contains(event.target as Node) && !notificationDropdown.contains(event.target as Node)) {
+        this.showNotifications = false;
+      }
+    }
+  }
+
+  // Navigation vers d'autres pages
+  navigateTo(route: string): void {
+    this.router.navigate([`/${route}`]);
+  }
+
+  // Basculer l'affichage des notifications
+  toggleNotifications(event: Event): void {
+    event.stopPropagation();
+    this.showNotifications = !this.showNotifications;
+  }
+
+  // Marquer une notification comme lue
+  markAsRead(notification: Notification): void {
+    notification.read = true;
+    this.updateNotificationCount();
+  }
+
+  // Marquer toutes les notifications comme lues
+  markAllAsRead(): void {
+    this.notifications.forEach(notification => {
+      notification.read = true;
+    });
+    this.updateNotificationCount();
+  }
+
+  // Mettre à jour le compteur de notifications non lues
+  updateNotificationCount(): void {
+    this.notificationCount = this.notifications.filter(n => !n.read).length;
+  }
+
+  // Supprimer une notification
+  deleteNotification(id: number, event: Event): void {
+    event.stopPropagation();
+    this.notifications = this.notifications.filter(n => n.id !== id);
+    this.updateNotificationCount();
+  }
+
+  // Méthode pour basculer l'affichage du sous-menu Cours
+  toggleCourSubmenu(event: Event): void {
+    event.stopPropagation(); // Empêcher la propagation de l'événement
+    this.showCourSubmenu = !this.showCourSubmenu;
+
+    // Fermer les sous-menus de semestre si on ferme le menu cours
+    if (!this.showCourSubmenu) {
+      this.showSemestreSubmenu = { 1: false, 2: false };
+    }
+  }
+
+  // Méthode pour basculer l'affichage du sous-menu Semestre
+  toggleSemestreSubmenu(event: Event, semestre: number): void {
+    event.stopPropagation(); // Empêcher la propagation de l'événement
+    this.showSemestreSubmenu[semestre] = !this.showSemestreSubmenu[semestre];
+  }
+
+  // Naviguer vers la page de cours pour une matière spécifique
+  navigateToMatiere(event: Event, matiereId: number, semestre: number): void {
+    event.stopPropagation(); // Empêcher la propagation de l'événement
+    console.log(`Navigating to matiere: ${matiereId}, semestre: ${semestre}`);
+    this.router.navigate(["/cour"], {
+      queryParams: {
+        matiereId: matiereId,
+        semestre: semestre,
+      },
+    });
+  }
+
+  // Méthode pour obtenir la couleur de fond selon le type de cours
+  getCoursColor(type: string): string {
+    switch (type) {
+      case "Cours":
+        return "#6366f1";
+      case "TD":
+        return "#f59e0b";
+      case "TP":
+        return "#10b981";
+      default:
+        return "#6366f1";
+    }
   }
 
   private initializeForms(): void {

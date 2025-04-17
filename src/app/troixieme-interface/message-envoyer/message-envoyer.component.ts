@@ -1,4 +1,5 @@
-import { Component, type OnInit, ViewEncapsulation } from "@angular/core"
+import { Component, type OnInit, ViewEncapsulation, HostListener } from "@angular/core"
+import { Router } from "@angular/router"
 
 interface Message {
   id: string
@@ -20,6 +21,15 @@ interface Matiere {
   enseignant: string
   couleur: string
   icon: string
+}
+
+interface Notification {
+  id: number
+  type: "cours" | "devoir" | "quiz"
+  title: string
+  message: string
+  date: Date
+  read: boolean
 }
 
 @Component({
@@ -49,18 +59,17 @@ export class MessageEnvoyerComponent implements OnInit {
     contenu: "",
     matiere: "",
   }
-  formatMessageContent(content: string): string {
-    return content.replace(/\n/g, "<br>")
-  }
-  formatContent(content: string): string {
-    return content.replace(/\n/g, "<br>")
-  }
+
   // État d'envoi
   isSubmitting = false
   messageEnvoye = false
 
   // Recherche
   searchTerm = ""
+
+  // Notifications
+  notifications: Notification[] = []
+  showNotificationDropdown = false
 
   // Liste des matières (12 matières au lieu de 6)
   matieres: Matiere[] = [
@@ -239,9 +248,127 @@ export class MessageEnvoyerComponent implements OnInit {
     },
   ]
 
-  constructor() {}
+  constructor(private router: Router) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Charger les notifications
+    this.loadNotifications()
+  }
+
+  // Écouteur d'événement pour fermer le dropdown quand on clique ailleurs
+  @HostListener("document:click", ["$event"])
+  onDocumentClick(event: MouseEvent): void {
+    // Vérifier si le clic est en dehors du dropdown
+    const target = event.target as HTMLElement
+    if (!target.closest(".notification-btn") && !target.closest(".notification-dropdown")) {
+      this.closeNotificationDropdown()
+    }
+  }
+
+  // Méthode pour charger les notifications
+  loadNotifications(): void {
+    const now = new Date()
+    const yesterday = new Date(now)
+    yesterday.setDate(yesterday.getDate() - 1)
+
+    // Simuler quelques notifications
+    this.notifications = [
+      {
+        id: 1,
+        type: "cours",
+        title: "Nouveau chapitre disponible",
+        message: 'Le chapitre "Introduction aux bases de données relationnelles" a été ajouté.',
+        date: now,
+        read: false,
+      },
+      {
+        id: 2,
+        type: "devoir",
+        title: "Nouveau devoir assigné",
+        message: 'Un nouveau devoir "Implémentation d\'un algorithme de tri" a été assigné.',
+        date: yesterday,
+        read: false,
+      },
+      {
+        id: 3,
+        type: "quiz",
+        title: "Nouveau quiz disponible",
+        message: 'Un nouveau quiz sur "Les réseaux de neurones" est maintenant disponible.',
+        date: yesterday,
+        read: false,
+      },
+    ]
+  }
+
+  // Méthode pour afficher/masquer le dropdown de notifications
+  toggleNotificationDropdown(event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation()
+    }
+    this.showNotificationDropdown = !this.showNotificationDropdown
+  }
+
+  // Méthode pour fermer le dropdown si on clique ailleurs
+  closeNotificationDropdown(): void {
+    this.showNotificationDropdown = false
+  }
+
+  // Méthode pour marquer une notification comme lue
+  markAsRead(notification: Notification): void {
+    notification.read = true
+  }
+
+  // Méthode pour obtenir le nombre de notifications non lues
+  getUnreadNotificationsCount(): number {
+    return this.notifications.filter((n) => !n.read).length
+  }
+
+  // Méthode pour obtenir l'icône en fonction du type de notification
+  getNotificationIcon(type: string): string {
+    switch (type) {
+      case "cours":
+        return "fa-book"
+      case "devoir":
+        return "fa-tasks"
+      case "quiz":
+        return "fa-question-circle"
+      default:
+        return "fa-bell"
+    }
+  }
+
+  // Méthode pour formater le temps écoulé
+  formatTimeAgo(date: Date): string {
+    const now = new Date()
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+    if (diffInSeconds < 60) {
+      return "À l'instant"
+    }
+
+    const diffInMinutes = Math.floor(diffInSeconds / 60)
+    if (diffInMinutes < 60) {
+      return `Il y a ${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""}`
+    }
+
+    const diffInHours = Math.floor(diffInMinutes / 60)
+    if (diffInHours < 24) {
+      return `Il y a ${diffInHours} heure${diffInHours > 1 ? "s" : ""}`
+    }
+
+    const diffInDays = Math.floor(diffInHours / 24)
+    if (diffInDays < 7) {
+      return `Il y a ${diffInDays} jour${diffInDays > 1 ? "s" : ""}`
+    }
+
+    return this.formatDate(date)
+  }
+
+  // Méthode pour naviguer vers la page de notifications
+  navigateToNotifications(): void {
+    this.router.navigate(["/troixieme-interface/notification"])
+    this.closeNotificationDropdown()
+  }
 
   // Changer d'onglet
   changeTab(tab: "recus" | "envoyes" | "nouveau"): void {
@@ -360,6 +487,16 @@ export class MessageEnvoyerComponent implements OnInit {
       hour: "2-digit",
       minute: "2-digit",
     })
+  }
+
+  // Formater le contenu du message
+  formatMessageContent(content: string): string {
+    return content.replace(/\n/g, "<br>")
+  }
+
+  // Formater le contenu
+  formatContent(content: string): string {
+    return content.replace(/\n/g, "<br>")
   }
 
   // Obtenir les messages filtrés par recherche

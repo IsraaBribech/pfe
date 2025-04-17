@@ -1,5 +1,7 @@
-import { Component, type OnInit } from "@angular/core"
-import { FormBuilder, type FormGroup, type FormArray } from "@angular/forms"
+import { Component, type OnInit, HostListener } from "@angular/core"
+import { FormBuilder, type FormGroup, type FormArray, Validators, FormControl } from "@angular/forms"
+import { Router, NavigationEnd, ActivatedRoute } from "@angular/router"
+import { Location } from "@angular/common"
 
 interface Matiere {
   id: string
@@ -11,6 +13,15 @@ interface Matiere {
   heures: number
 }
 
+interface Notification {
+  id: number
+  sender: string
+  message: string
+  time: string
+  read: boolean
+  avatar?: string
+}
+
 @Component({
   selector: "app-voeux",
   templateUrl: "./voeux.component.html",
@@ -20,6 +31,48 @@ export class VoeuxComponent implements OnInit {
   // Informations de l'enseignant
   enseignantName = "Israa Bribech"
   enseignantEmail = "israabribech2002@gmail.com"
+  enseignantCIN = "12345678"
+  departement = "Informatique"
+  specialite = "Développement Web"
+  grade = "Professeur"
+  experience = "15"
+
+  // Statistiques
+  coursStats = {
+    total: 12,
+    active: 8,
+    draft: 4,
+  }
+
+  chapitreStats = {
+    total: 45,
+    published: 40,
+    draft: 5,
+  }
+
+  devoirStats = {
+    total: 18,
+    pending: 5,
+    graded: 13,
+  }
+
+  quizStats = {
+    total: 10,
+    active: 6,
+    completed: 4,
+  }
+
+  messageStats = {
+    total: 24,
+    unread: 8,
+    sent: 16,
+  }
+
+  voeuxStats = {
+    total: 3,
+    approved: 2,
+    pending: 1,
+  }
 
   // Formulaires pour les semestres
   semestre1Form!: FormGroup
@@ -27,6 +80,9 @@ export class VoeuxComponent implements OnInit {
 
   // Liste des matières disponibles
   matieres: Matiere[] = []
+
+  // Liste des matières déjà attribuées (non disponibles)
+  unavailableMatieres: string[] = ["m2", "m5", "m8", "m11", "m14"]
 
   // Filtres
   filteredMatieresSemestre1: Matiere[] = []
@@ -62,11 +118,254 @@ export class VoeuxComponent implements OnInit {
   // Onglet actif
   activeTab: "semestre1" | "semestre2" = "semestre1"
 
-  constructor(private fb: FormBuilder) {}
+  // Notifications
+  showNotifications = false
+  notifications: Notification[] = [
+    {
+      id: 1,
+      sender: "Ahmed Benali",
+      message: "J'ai soumis mon devoir de programmation web",
+      time: "Il y a 10 minutes",
+      read: false,
+      avatar: "A",
+    },
+    {
+      id: 2,
+      sender: "Fatima Zahra",
+      message: "Question concernant le TP de bases de données",
+      time: "Il y a 30 minutes",
+      read: false,
+      avatar: "F",
+    },
+    {
+      id: 3,
+      sender: "Mohamed Tazi",
+      message: "Demande de rendez-vous pour discuter du projet",
+      time: "Il y a 2 heures",
+      read: false,
+      avatar: "M",
+    },
+    {
+      id: 4,
+      sender: "Leila Kadiri",
+      message: "Confirmation de présence pour la séance de rattrapage",
+      time: "Il y a 5 heures",
+      read: true,
+      avatar: "L",
+    },
+    {
+      id: 5,
+      sender: "Karim Alaoui",
+      message: "Problème avec l'accès au quiz en ligne",
+      time: "Hier",
+      read: true,
+      avatar: "K",
+    },
+    {
+      id: 6,
+      sender: "Yasmine Berrada",
+      message: "Demande d'extension pour le délai du devoir",
+      time: "Hier",
+      read: true,
+      avatar: "Y",
+    },
+    {
+      id: 7,
+      sender: "Omar Idrissi",
+      message: "Question sur le chapitre 3 du cours",
+      time: "Il y a 2 jours",
+      read: true,
+      avatar: "O",
+    },
+    {
+      id: 8,
+      sender: "Nour El Houda",
+      message: "Partage d'un article intéressant lié au cours",
+      time: "Il y a 3 jours",
+      read: true,
+      avatar: "N",
+    },
+  ]
+
+  // Modal actif
+  activeModal: string | null = null
+
+  // Semestre sélectionné
+  selectedSemestre: number | null = null
+
+  // États du menu - tous fermés par défaut
+  showCourSubmenu = false
+  showSemestreSubmenu: { [key: number]: boolean } = { 1: false, 2: false }
+
+  // Matières par semestre avec ajout du type (Cours, TD, TP)
+  matieresSemestre1 = [
+    { id: 1, nom: "Programmation Web", departement: "Informatique", niveau: "Licence 3", type: "Cours", icon: "code" },
+    { id: 2, nom: "Bases de données", departement: "Informatique", niveau: "Licence 2", type: "TD", icon: "database" },
+    { id: 3, nom: "Algorithmes", departement: "Informatique", niveau: "Licence 1", type: "TP", icon: "microchip" },
+    { id: 4, nom: "Comptabilité", departement: "Gestion", niveau: "Licence 2", type: "Cours", icon: "file-invoice" },
+  ]
+
+  matieresSemestre2 = [
+    {
+      id: 5,
+      nom: "Développement Mobile",
+      departement: "Informatique",
+      niveau: "Licence 3",
+      type: "Cours",
+      icon: "mobile-alt",
+    },
+    {
+      id: 6,
+      nom: "Intelligence Artificielle",
+      departement: "Informatique",
+      niveau: "Master 1",
+      type: "TD",
+      icon: "brain",
+    },
+    { id: 7, nom: "Réseaux", departement: "Informatique", niveau: "Licence 2", type: "TP", icon: "network-wired" },
+    { id: 8, nom: "Marketing Digital", departement: "Gestion", niveau: "Licence 3", type: "Cours", icon: "chart-line" },
+  ]
+
+  // Afficher la liste des matières
+  showMatieresList = false
+
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private route: ActivatedRoute,
+    private location: Location
+  ) {
+    // Écouter les événements de navigation pour mettre à jour l'état actif
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.updateActiveState(event.url);
+      }
+    });
+  }
 
   ngOnInit(): void {
-    this.loadMockData()
-    this.initForms()
+    this.loadMockData();
+    this.initForms();
+    this.updateUnreadCount();
+    
+    // Initialiser l'état actif en fonction de l'URL actuelle
+    this.updateActiveState(this.router.url);
+    
+    // Vérifier si nous sommes sur une page spécifique au chargement
+    // Mais ne pas ouvrir automatiquement les menus
+    if (this.router.url.includes('/cour')) {
+      // Ne pas ouvrir automatiquement le menu Cours
+      // this.showCourSubmenu = true;
+      
+      // Extraire les paramètres de l'URL pour déterminer quel semestre est actif
+      // Mais ne pas ouvrir automatiquement les sous-menus
+      this.route.queryParams.subscribe(params => {
+        if (params['semestre']) {
+          const semestre = parseInt(params['semestre']);
+          // Ne pas ouvrir automatiquement les sous-menus de semestre
+          // if (semestre === 1 || semestre === 2) {
+          //   this.showSemestreSubmenu[semestre] = true;
+          // }
+        }
+      });
+    }
+  }
+
+  // Mettre à jour l'état actif en fonction de l'URL
+  updateActiveState(url: string): void {
+    // Réinitialiser les états des sous-menus si on n'est pas sur la page correspondante
+    if (!url.includes('/cour')) {
+      this.showCourSubmenu = false;
+      this.showSemestreSubmenu = { 1: false, 2: false };
+    }
+  }
+
+  // Fermer les notifications quand on clique ailleurs
+  @HostListener("document:click", ["$event"])
+  clickOutside(event: Event): void {
+    const notificationIcon = document.querySelector(".notification-icon");
+    const notificationDropdown = document.querySelector(".notification-dropdown");
+
+    if (notificationIcon && notificationDropdown) {
+      if (!notificationIcon.contains(event.target as Node) && !notificationDropdown.contains(event.target as Node)) {
+        this.showNotifications = false;
+      }
+    }
+  }
+
+  // Basculer l'affichage des notifications
+  toggleNotifications(event: Event): void {
+    event.stopPropagation();
+    this.showNotifications = !this.showNotifications;
+  }
+
+  // Marquer une notification comme lue
+  markAsRead(notification: Notification): void {
+    notification.read = true;
+    this.updateUnreadCount();
+  }
+
+  // Marquer toutes les notifications comme lues
+  markAllAsRead(): void {
+    this.notifications.forEach((notification) => {
+      notification.read = true;
+    });
+    this.updateUnreadCount();
+  }
+
+  // Mettre à jour le compteur de messages non lus
+  updateUnreadCount(): void {
+    this.messageStats.unread = this.notifications.filter((n) => !n.read).length;
+  }
+
+  // Supprimer une notification
+  deleteNotification(id: number, event: Event): void {
+    event.stopPropagation();
+    this.notifications = this.notifications.filter((n) => n.id !== id);
+    this.updateUnreadCount();
+  }
+
+  // Méthode pour basculer l'affichage du sous-menu Cours
+  toggleCourSubmenu(event: Event): void {
+    event.stopPropagation(); // Empêcher la propagation de l'événement
+    this.showCourSubmenu = !this.showCourSubmenu;
+
+    // Fermer les sous-menus de semestre si on ferme le menu cours
+    if (!this.showCourSubmenu) {
+      this.showSemestreSubmenu = { 1: false, 2: false };
+    }
+  }
+
+  // Méthode pour basculer l'affichage du sous-menu Semestre
+  toggleSemestreSubmenu(event: Event, semestre: number): void {
+    event.stopPropagation(); // Empêcher la propagation de l'événement
+    this.showSemestreSubmenu[semestre] = !this.showSemestreSubmenu[semestre];
+  }
+
+  // Naviguer vers la page de cours pour une matière spécifique
+  navigateToMatiere(event: Event, matiereId: number, semestre: number): void {
+    event.stopPropagation(); // Empêcher la propagation de l'événement
+    console.log(`Navigating to matiere: ${matiereId}, semestre: ${semestre}`);
+    this.router.navigate(["/cour"], {
+      queryParams: {
+        matiereId: matiereId,
+        semestre: semestre,
+      },
+    });
+  }
+
+  // Méthode pour obtenir la couleur de fond selon le type de cours
+  getCoursColor(type: string): string {
+    switch (type) {
+      case "Cours":
+        return "#6366f1";
+      case "TD":
+        return "#f59e0b";
+      case "TP":
+        return "#10b981";
+      default:
+        return "#6366f1";
+    }
   }
 
   loadMockData(): void {
@@ -320,7 +619,7 @@ export class VoeuxComponent implements OnInit {
       // Si la matière est déjà sélectionnée, la supprimer
       matieresArray.removeAt(index)
     } else {
-      // Sinon, l'ajouter
+      // Sinon, l'ajouter avec le nouveau champ typeSeance
       matieresArray.push(
         this.fb.group({
           id: [matiere.id],
@@ -328,9 +627,63 @@ export class VoeuxComponent implements OnInit {
           credits: [matiere.credits],
           heures: [matiere.heures],
           commentaire: [""],
+          typeSeance: ["Cours"] // Valeur par défaut pour le type de séance
         }),
       )
     }
+  }
+
+  // Méthode pour gérer le changement de type de séance
+  onTypeSeanceChange(event: Event, semestre: number, index: number): void {
+    const selectElement = event.target as HTMLSelectElement;
+    if (selectElement) {
+      const value = selectElement.value;
+      this.updateTypeSeance(semestre, index, value);
+    }
+  }
+
+  // Mettre à jour le type de séance
+  updateTypeSeance(semestre: number, index: number, value: string): void {
+    const form = semestre === 1 ? this.semestre1Form : this.semestre2Form
+    const matieresArray = form.get("matieres") as FormArray
+    const matiereGroup = matieresArray.at(index) as FormGroup
+    matiereGroup.get("typeSeance")?.setValue(value)
+  }
+
+  // Vérifier si une matière est indisponible (déjà attribuée)
+  isUnavailable(matiereId: string): boolean {
+    return this.unavailableMatieres.includes(matiereId)
+  }
+
+  // Calculer les points en fonction des heures
+  calculatePoints(heures: number): number {
+    // Formule simple: 1 point pour 3 heures de cours
+    return Math.ceil(heures / 3)
+  }
+
+  // Méthodes pour gérer la priorité des matières
+  moveUp(semestre: number, index: number): void {
+    if (index <= 0) return;
+
+    const form = semestre === 1 ? this.semestre1Form : this.semestre2Form
+    const matieresArray = form.get("matieres") as FormArray
+    
+    // Échanger avec l'élément précédent
+    const temp = matieresArray.at(index - 1).value
+    matieresArray.at(index - 1).patchValue(matieresArray.at(index).value)
+    matieresArray.at(index).patchValue(temp)
+  }
+
+  moveDown(semestre: number, index: number): void {
+    const form = semestre === 1 ? this.semestre1Form : this.semestre2Form
+    const matieresArray = form.get("matieres") as FormArray
+    
+    if (index >= matieresArray.length - 1) return
+    
+    // Échanger avec l'élément suivant
+    const temp = matieresArray.at(index + 1).value
+    matieresArray.at(index + 1).patchValue(matieresArray.at(index).value)
+    matieresArray.at(index).patchValue(temp)
   }
 
   updateCommentaire(semestre: number, index: number, value: string): void {
@@ -385,29 +738,26 @@ export class VoeuxComponent implements OnInit {
     return matieresArray.controls.reduce((total, control) => total + (control.get("heures")?.value || 0), 0)
   }
 
-  getTotalVoeux(): number {
-    // Dans une implémentation réelle, cette valeur viendrait d'une API
-    return 5
-  }
+  getTotalPoints(semestre: number): number {
+    const form = semestre === 1 ? this.semestre1Form : this.semestre2Form
+    const matieresArray = form.get("matieres") as FormArray
 
-  getAcceptedVoeux(): number {
-    // Dans une implémentation réelle, cette valeur viendrait d'une API
-    return 3
-  }
-
-  getPendingVoeux(): number {
-    // Dans une implémentation réelle, cette valeur viendrait d'une API
-    return 2
-  }
-
-  getTotalMatieres(): number {
-    return this.matieres.length
+    return matieresArray.controls.reduce(
+      (total, control) => total + this.calculatePoints(control.get("heures")?.value || 0), 
+      0
+    )
   }
 
   submitVoeux(semestre: number): void {
     const form = semestre === 1 ? this.semestre1Form : this.semestre2Form
 
     if ((form.get("matieres") as FormArray).length > 0) {
+      // Vérifier que le total des points ne dépasse pas 16
+      if (this.getTotalPoints(semestre) > 16) {
+        alert("Le total des points ne doit pas dépasser 16.")
+        return
+      }
+
       // Dans une implémentation réelle, vous enverriez ces données à une API
       console.log(`Voeux pour le semestre ${semestre} soumis:`, form.value)
 
@@ -438,5 +788,14 @@ export class VoeuxComponent implements OnInit {
       this.semestre2Submitted = false
     }
   }
-}
 
+  // Afficher un modal
+  showModal(modalType: string): void {
+    this.activeModal = modalType;
+  }
+
+  // Cacher le modal actif
+  hideModal(): void {
+    this.activeModal = null;
+  }
+}

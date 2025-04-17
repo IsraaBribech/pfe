@@ -1,4 +1,4 @@
-<div class="enseignant-container">
+<div class="dashboard-container">
   <!-- Sidebar -->
   <div class="sidebar">
     <div class="sidebar-header">
@@ -6,13 +6,14 @@
         <div class="logo-icon">E</div>
         <span class="logo-text">EduSpace</span>
       </div>
-      <div class="enseignant-info">
+      <!-- Transformation en bouton profil cliquable -->
+      <button class="profile-button" routerLink="/ensprofil">
         <div class="enseignant-avatar">{{ enseignantName[0] }}</div>
         <div class="enseignant-details">
           <h3>{{ enseignantName }}</h3>
           <p>{{ enseignantEmail }}</p>
         </div>
-      </div>
+      </button>
     </div>
     <nav class="sidebar-nav">
       <ul>
@@ -20,13 +21,70 @@
           <i class="fas fa-home"></i>
           <span>Tableau de bord</span>
         </li>
-        <li routerLink="/cour" routerLinkActive="active">
+        
+        <!-- Menu Cours avec sous-menus -->
+        <li (click)="toggleCourSubmenu($event)" [class.active]="showCourSubmenu">
           <i class="fas fa-book"></i>
           <span>Cours</span>
+          <i class="fas fa-chevron-down submenu-icon" [class.rotate]="showCourSubmenu"></i>
         </li>
+        
+        <!-- Sous-menu pour Cours -->
+        <div class="submenu" [class.visible]="showCourSubmenu">
+          <!-- Option Semestre 1 -->
+          <li (click)="toggleSemestreSubmenu($event, 1)" [class.active]="showSemestreSubmenu[1]">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Semestre 1</span>
+            <i class="fas fa-chevron-down submenu-icon" [class.rotate]="showSemestreSubmenu[1]"></i>
+          </li>
+          
+          <!-- Sous-menu pour Semestre 1 -->
+          <div class="submenu nested" [class.visible]="showSemestreSubmenu[1]">
+            <li *ngFor="let matiere of matieresSemestre1" 
+                (click)="navigateToMatiere($event, matiere.id, 1)" 
+                class="matiere-menu-item">
+              <div class="matiere-menu-icon" [ngClass]="{'cours-type': matiere.type === 'Cours', 'td-type': matiere.type === 'TD', 'tp-type': matiere.type === 'TP'}">
+                <i class="fas" [ngClass]="{'fa-book': matiere.type === 'Cours', 'fa-pencil-alt': matiere.type === 'TD', 'fa-laptop-code': matiere.type === 'TP'}"></i>
+              </div>
+              <div class="matiere-menu-content">
+                <span class="matiere-menu-title">{{ matiere.nom }}</span>
+                <div class="matiere-menu-details">
+                  <span class="matiere-menu-niveau">{{ matiere.niveau }}</span>
+                  <span class="matiere-menu-type">{{ matiere.type }}</span>
+                </div>
+              </div>
+            </li>
+          </div>
+          
+          <!-- Option Semestre 2 -->
+          <li (click)="toggleSemestreSubmenu($event, 2)" [class.active]="showSemestreSubmenu[2]">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Semestre 2</span>
+            <i class="fas fa-chevron-down submenu-icon" [class.rotate]="showSemestreSubmenu[2]"></i>
+          </li>
+          
+          <!-- Sous-menu pour Semestre 2 -->
+          <div class="submenu nested" [class.visible]="showSemestreSubmenu[2]">
+            <li *ngFor="let matiere of matieresSemestre2" 
+                (click)="navigateToMatiere($event, matiere.id, 2)" 
+                class="matiere-menu-item">
+              <div class="matiere-menu-icon" [ngClass]="{'cours-type': matiere.type === 'Cours', 'td-type': matiere.type === 'TD', 'tp-type': matiere.type === 'TP'}">
+                <i class="fas" [ngClass]="{'fa-book': matiere.type === 'Cours', 'fa-pencil-alt': matiere.type === 'TD', 'fa-laptop-code': matiere.type === 'TP'}"></i>
+              </div>
+              <div class="matiere-menu-content">
+                <span class="matiere-menu-title">{{ matiere.nom }}</span>
+                <div class="matiere-menu-details">
+                  <span class="matiere-menu-niveau">{{ matiere.niveau }}</span>
+                  <span class="matiere-menu-type">{{ matiere.type }}</span>
+                </div>
+              </div>
+            </li>
+          </div>
+        </div>
+        
         <li routerLink="/devoir" routerLinkActive="active">
           <i class="fas fa-tasks"></i>
-          <span>Devoir</span>
+          <span>Devoirs</span>
         </li>
         <li routerLink="/quiz" routerLinkActive="active">
           <i class="fas fa-question-circle"></i>
@@ -34,7 +92,7 @@
         </li>
         <li routerLink="/message" routerLinkActive="active">
           <i class="fas fa-envelope"></i>
-          <span>Message</span>
+          <span>Messages</span>
         </li>
         <li routerLink="/voeux" routerLinkActive="active">
           <i class="fas fa-list-alt"></i>
@@ -54,6 +112,48 @@
         <div class="search-bar">
           <i class="fas fa-search"></i>
           <input type="text" placeholder="Rechercher un message..." [(ngModel)]="searchTerm" (input)="filterMessages()">
+        </div>
+        <!-- Ajout de l'icône de notification -->
+        <div class="notification-icon" (click)="toggleNotifications($event)">
+          <i class="fas fa-bell"></i>
+          <span class="badge" *ngIf="notificationCount > 0">{{ notificationCount }}</span>
+          
+          <!-- Dropdown des notifications -->
+          <div class="notification-dropdown" *ngIf="showNotifications">
+            <div class="notification-header">
+              <h3>Notifications</h3>
+              <button class="mark-all-read" (click)="markAllAsRead()">
+                <i class="fas fa-check-double"></i> Tout marquer comme lu
+              </button>
+            </div>
+            <div class="notification-list">
+              <div *ngIf="notifications.length === 0" class="no-notifications">
+                <i class="fas fa-bell-slash"></i>
+                <p>Aucune notification</p>
+              </div>
+              <div 
+                *ngFor="let notification of notifications" 
+                class="notification-item" 
+                [class.unread]="!notification.read"
+                (click)="markAsRead(notification)"
+              >
+                <div class="notification-avatar">
+                  {{ notification.avatar }}
+                </div>
+                <div class="notification-content">
+                  <div class="notification-sender">{{ notification.sender }}</div>
+                  <div class="notification-message">{{ notification.message }}</div>
+                  <div class="notification-time">{{ notification.time }}</div>
+                </div>
+                <button class="notification-delete" (click)="deleteNotification(notification.id, $event)">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+            <div class="notification-footer">
+              <a routerLink="/message">Voir tous les messages</a>
+            </div>
+          </div>
         </div>
         <button class="btn-primary" (click)="showModal('newMessage')">
           <i class="fas fa-plus"></i> Nouveau message

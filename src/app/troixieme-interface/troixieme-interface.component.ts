@@ -1,5 +1,15 @@
-import { Component, type OnInit } from "@angular/core"
-import { Router } from "@angular/router"
+import { Component, type OnInit, HostListener } from "@angular/core"
+import { Router, NavigationEnd } from "@angular/router"
+import { filter } from 'rxjs/operators'
+
+interface Notification {
+  id: number
+  type: "cours" | "devoir" | "quiz"
+  title: string
+  message: string
+  date: Date
+  read: boolean
+}
 
 @Component({
   selector: "app-troixieme-interface",
@@ -14,8 +24,9 @@ export class TroixiemeInterfaceComponent implements OnInit {
 
   // Informations académiques
   departement = "Informatique"
-  specialite = "BIS "
+  specialite = "BIS"
   niveau = "Licence 3"
+  groupe = "G1.2" // Ajout du groupe de l'étudiant
 
   // Statistiques
   statsData = {
@@ -23,287 +34,146 @@ export class TroixiemeInterfaceComponent implements OnInit {
     devoirs: 8,
     quizzes: 3,
     messages: 12,
+    notifications: 7, // Ajout des notifications
   }
 
   // Onglet actif
   activeSemester: "semestre1" | "semestre2" = "semestre1"
 
-  // Liste des matières du semestre 1
-  matieresSemestre1 = [
-    {
-      id: "m1",
-      nom: "Programmation Web",
-      enseignant: "Dr. Martin Dupont",
-      credits: 6,
-      heures: 42,
-      couleur: "#6366f1",
-      icon: "fa-code",
-      progression: 75,
-      departement: "Informatique",
-    },
-    {
-      id: "m2",
-      nom: "Bases de données",
-      enseignant: "Prof. Sophie Laurent",
-      credits: 6,
-      heures: 42,
-      couleur: "#f59e0b",
-      icon: "fa-database",
-      progression: 60,
-      departement: "Informatique",
-    },
-    {
-      id: "m3",
-      nom: "Algorithmes avancés",
-      enseignant: "Dr. Jean Petit",
-      credits: 4,
-      heures: 36,
-      couleur: "#10b981",
-      icon: "fa-sitemap",
-      progression: 45,
-      departement: "Informatique",
-    },
-    {
-      id: "m4",
-      nom: "Intelligence artificielle",
-      enseignant: "Prof. Marie Leroy",
-      credits: 6,
-      heures: 48,
-      couleur: "#8b5cf6",
-      icon: "fa-brain",
-      progression: 30,
-      departement: "Informatique",
-    },
-    {
-      id: "m5",
-      nom: "Machine Learning",
-      enseignant: "Dr. Thomas Bernard",
-      credits: 6,
-      heures: 48,
-      couleur: "#ec4899",
-      icon: "fa-robot",
-      progression: 25,
-      departement: "Informatique",
-    },
-    {
-      id: "m6",
-      nom: "Algèbre linéaire",
-      enseignant: "Prof. Claire Dubois",
-      credits: 6,
-      heures: 42,
-      couleur: "#ef4444",
-      icon: "fa-square-root-alt",
-      progression: 80,
-      departement: "Mathématiques",
-    },
-    {
-      id: "m7",
-      nom: "Analyse numérique",
-      enseignant: "Dr. Philippe Martin",
-      credits: 4,
-      heures: 36,
-      couleur: "#0ea5e9",
-      icon: "fa-chart-line",
-      progression: 65,
-      departement: "Mathématiques",
-    },
-    {
-      id: "m8",
-      nom: "Réseaux informatiques",
-      enseignant: "Prof. Luc Moreau",
-      credits: 6,
-      heures: 42,
-      couleur: "#14b8a6",
-      icon: "fa-network-wired",
-      progression: 50,
-      departement: "Informatique",
-    },
-    {
-      id: "m9",
-      nom: "Sécurité informatique",
-      enseignant: "Dr. Isabelle Blanc",
-      credits: 4,
-      heures: 36,
-      couleur: "#f43f5e",
-      icon: "fa-shield-alt",
-      progression: 40,
-      departement: "Informatique",
-    },
-    {
-      id: "m10",
-      nom: "Développement mobile",
-      enseignant: "Prof. Antoine Rousseau",
-      credits: 6,
-      heures: 48,
-      couleur: "#84cc16",
-      icon: "fa-mobile-alt",
-      progression: 55,
-      departement: "Informatique",
-    },
-    {
-      id: "m11",
-      nom: "Gestion de projet",
-      enseignant: "Dr. Nathalie Mercier",
-      credits: 4,
-      heures: 36,
-      couleur: "#a855f7",
-      icon: "fa-tasks",
-      progression: 70,
-      departement: "Gestion",
-    },
-    {
-      id: "m12",
-      nom: "Anglais technique",
-      enseignant: "Prof. Sarah Johnson",
-      credits: 3,
-      heures: 30,
-      couleur: "#06b6d4",
-      icon: "fa-language",
-      progression: 85,
-      departement: "Langues",
-    },
-  ]
-
-  // Liste des matières du semestre 2
-  matieresSemestre2 = [
-    {
-      id: "m13",
-      nom: "Frameworks JavaScript",
-      enseignant: "Dr. Julien Moreau",
-      credits: 6,
-      heures: 42,
-      couleur: "#8b5cf6",
-      icon: "fa-js",
-      progression: 65,
-      departement: "Informatique",
-    },
-    {
-      id: "m14",
-      nom: "Développement Backend",
-      enseignant: "Prof. Lucie Girard",
-      credits: 6,
-      heures: 48,
-      couleur: "#10b981",
-      icon: "fa-server",
-      progression: 55,
-      departement: "Informatique",
-    },
-    {
-      id: "m15",
-      nom: "Architecture logicielle",
-      enseignant: "Dr. Marc Dubois",
-      credits: 4,
-      heures: 36,
-      couleur: "#f59e0b",
-      icon: "fa-cubes",
-      progression: 40,
-      departement: "Informatique",
-    },
-    {
-      id: "m16",
-      nom: "DevOps & CI/CD",
-      enseignant: "Prof. Émilie Blanc",
-      credits: 4,
-      heures: 36,
-      couleur: "#ef4444",
-      icon: "fa-sync-alt",
-      progression: 30,
-      departement: "Informatique",
-    },
-    {
-      id: "m17",
-      nom: "Cloud Computing",
-      enseignant: "Dr. Pierre Lambert",
-      credits: 4,
-      heures: 36,
-      couleur: "#0ea5e9",
-      icon: "fa-cloud",
-      progression: 45,
-      departement: "Informatique",
-    },
-    {
-      id: "m18",
-      nom: "Statistiques appliquées",
-      enseignant: "Prof. Hélène Martin",
-      credits: 6,
-      heures: 42,
-      couleur: "#a855f7",
-      icon: "fa-chart-bar",
-      progression: 70,
-      departement: "Mathématiques",
-    },
-    {
-      id: "m19",
-      nom: "Analyse de données",
-      enseignant: "Dr. François Petit",
-      credits: 6,
-      heures: 48,
-      couleur: "#ec4899",
-      icon: "fa-table",
-      progression: 60,
-      departement: "Informatique",
-    },
-    {
-      id: "m20",
-      nom: "Blockchain & Cryptomonnaies",
-      enseignant: "Prof. Nicolas Roux",
-      credits: 4,
-      heures: 36,
-      couleur: "#6366f1",
-      icon: "fa-link",
-      progression: 35,
-      departement: "Informatique",
-    },
-    {
-      id: "m21",
-      nom: "UX/UI Design",
-      enseignant: "Dr. Sophie Mercier",
-      credits: 4,
-      heures: 36,
-      couleur: "#84cc16",
-      icon: "fa-paint-brush",
-      progression: 75,
-      departement: "Design",
-    },
-    {
-      id: "m22",
-      nom: "Projet de fin d'études",
-      enseignant: "Prof. Michel Durand",
-      credits: 8,
-      heures: 60,
-      couleur: "#14b8a6",
-      icon: "fa-project-diagram",
-      progression: 25,
-      departement: "Informatique",
-    },
-    {
-      id: "m23",
-      nom: "Éthique & Informatique",
-      enseignant: "Dr. Claire Fontaine",
-      credits: 3,
-      heures: 30,
-      couleur: "#f43f5e",
-      icon: "fa-balance-scale",
-      progression: 80,
-      departement: "Sciences Humaines",
-    },
-    {
-      id: "m24",
-      nom: "Communication professionnelle",
-      enseignant: "Prof. Jean-Paul Martin",
-      credits: 3,
-      heures: 30,
-      couleur: "#06b6d4",
-      icon: "fa-comments",
-      progression: 90,
-      departement: "Communication",
-    },
-  ]
   messageStats: any
 
-  constructor(private router: Router) {}
+  // Ajout pour les notifications
+  notifications: Notification[] = []
+  showNotificationDropdown = false
 
-  ngOnInit(): void {}
+  constructor(private router: Router) {
+    // Écouter les événements de navigation pour mettre à jour le titre de la page
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => {
+        // Vous pouvez mettre à jour le titre de la page ici si nécessaire
+        // Ne pas fermer le dropdown de notifications lors de la navigation
+      });
+  }
+
+  ngOnInit(): void {
+    // Charger les notifications
+    this.loadNotifications()
+  }
+
+  // Écouteur d'événement pour fermer le dropdown quand on clique ailleurs
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    // Vérifier si le clic est en dehors du dropdown
+    const target = event.target as HTMLElement;
+    if (!target.closest('.notification-btn') && !target.closest('.notification-dropdown')) {
+      this.closeNotificationDropdown();
+    }
+  }
+
+  // Méthode pour charger les notifications
+  loadNotifications(): void {
+    const now = new Date()
+    const yesterday = new Date(now)
+    yesterday.setDate(yesterday.getDate() - 1)
+    
+    // Simuler quelques notifications
+    this.notifications = [
+      {
+        id: 1,
+        type: "cours",
+        title: "Nouveau chapitre disponible",
+        message: 'Le chapitre "Introduction aux bases de données relationnelles" a été ajouté.',
+        date: now,
+        read: false
+      },
+      {
+        id: 2,
+        type: "devoir",
+        title: "Nouveau devoir assigné",
+        message: 'Un nouveau devoir "Implémentation d\'un algorithme de tri" a été assigné.',
+        date: yesterday,
+        read: false
+      },
+      {
+        id: 3,
+        type: "quiz",
+        title: "Nouveau quiz disponible",
+        message: 'Un nouveau quiz sur "Les réseaux de neurones" est maintenant disponible.',
+        date: yesterday,
+        read: false
+      }
+    ]
+  }
+
+  // Méthode pour afficher/masquer le dropdown de notifications
+  toggleNotificationDropdown(event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showNotificationDropdown = !this.showNotificationDropdown
+  }
+
+  // Méthode pour fermer le dropdown si on clique ailleurs
+  closeNotificationDropdown(): void {
+    this.showNotificationDropdown = false
+  }
+
+  // Méthode pour marquer une notification comme lue
+  markAsRead(notification: Notification): void {
+    notification.read = true
+  }
+
+  // Méthode pour obtenir le nombre de notifications non lues
+  getUnreadNotificationsCount(): number {
+    return this.notifications.filter(n => !n.read).length
+  }
+
+  // Méthode pour obtenir l'icône en fonction du type de notification
+  getNotificationIcon(type: string): string {
+    switch (type) {
+      case "cours":
+        return "fa-book"
+      case "devoir":
+        return "fa-tasks"
+      case "quiz":
+        return "fa-question-circle"
+      default:
+        return "fa-bell"
+    }
+  }
+
+  // Méthode pour formater le temps écoulé
+  formatTimeAgo(date: Date): string {
+    const now = new Date()
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+    if (diffInSeconds < 60) {
+      return "À l'instant"
+    }
+
+    const diffInMinutes = Math.floor(diffInSeconds / 60)
+    if (diffInMinutes < 60) {
+      return `Il y a ${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""}`
+    }
+
+    const diffInHours = Math.floor(diffInMinutes / 60)
+    if (diffInHours < 24) {
+      return `Il y a ${diffInHours} heure${diffInHours > 1 ? "s" : ""}`
+    }
+
+    const diffInDays = Math.floor(diffInHours / 24)
+    if (diffInDays < 7) {
+      return `Il y a ${diffInDays} jour${diffInDays > 1 ? "s" : ""}`
+    }
+
+    return this.formatDate(date)
+  }
+
+  // Méthode pour vérifier si on est sur la page d'accueil
+  isHomePage(): boolean {
+    return this.router.url === '/troixieme-interface';
+  }
 
   // Méthode pour formater les dates
   formatDate(date: Date): string {
@@ -325,6 +195,8 @@ export class TroixiemeInterfaceComponent implements OnInit {
         return "courses"
       case "message":
         return "messages"
+      case "notification":
+        return "notifications"
       default:
         return ""
     }
@@ -341,31 +213,21 @@ export class TroixiemeInterfaceComponent implements OnInit {
         return "fa-book"
       case "message":
         return "fa-envelope"
+      case "notification":
+        return "fa-bell"
       default:
         return "fa-calendar"
     }
   }
 
-  // Méthode pour obtenir la classe CSS pour la progression
-  getProgressClass(progression: number): string {
-    if (progression >= 75) {
-      return "excellent"
-    } else if (progression >= 50) {
-      return "good"
-    } else if (progression >= 25) {
-      return "average"
-    } else {
-      return "poor"
-    }
-  }
-
-  // Méthode pour changer de semestre
-  changeSemester(semester: "semestre1" | "semestre2"): void {
-    this.activeSemester = semester
-  }
-
   // Méthode pour naviguer vers le profil
   navigateToProfile(): void {
     this.router.navigate(["/eduprofil"])
+  }
+
+  // Méthode pour naviguer vers la page de notifications
+  navigateToNotifications(): void {
+    this.router.navigate(["/troixieme-interface/notification"])
+    this.closeNotificationDropdown()
   }
 }

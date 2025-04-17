@@ -1,847 +1,967 @@
-import { Component, type OnInit } from "@angular/core"
+import { Component, OnInit, HostListener } from '@angular/core';
+import { Router } from '@angular/router';
+
+interface Notification {
+  id: number;
+  type: "cours" | "devoir" | "quiz";
+  title: string;
+  message: string;
+  date: Date;
+  read: boolean;
+}
 
 interface Question {
-  id: string
-  texte: string
-  type: "choix_unique" | "choix_multiple" | "texte"
+  id: string;
+  texte: string;
+  type: 'choix_unique' | 'choix_multiple' | 'texte';
   options?: {
-    id: string
-    texte: string
-    estCorrect: boolean
-  }[]
-  reponseTexte?: string
-  reponseUtilisateur?: string | string[]
-  points: number
+    id: string;
+    texte: string;
+    estCorrect: boolean;
+  }[];
+  reponseTexte?: string;
+  reponseUtilisateur?: string | string[];
+  points: number;
 }
 
 interface Quiz {
-  id: string
-  titre: string
-  description: string
-  dateCreation: Date
-  dateLimite: Date
-  duree: number // en minutes
-  questions: Question[]
-  estTermine: boolean
-  score?: number
-  dateCompletion?: Date
+  id: string;
+  titre: string;
+  description: string;
+  matiere: string;
+  dateCreation: Date;
+  dateLimite: Date;
+  duree: number; // en minutes
+  fichierConsigne: string;
+  estTermine: boolean;
+  score?: number;
+  dateCompletion?: Date;
+  questions: Question[];
+  type: 'cours' | 'td' | 'tp'; // Type de cours: Cours, TD ou TP
 }
 
 interface Matiere {
-  id: string
-  nom: string
-  enseignant: string
-  credits: number
-  heures: number
-  couleur: string
-  icon: string
-  departement: string
-  quiz: Quiz[]
+  nom: string;
+  couleur: string;
+  icon: string;
+  enseignants: {
+    cours: string;
+    td: string;
+    tp: string;
+  };
 }
 
 @Component({
-  selector: "app-quiz-repond",
-  templateUrl: "./quiz-repond.component.html",
-  styleUrls: ["./quiz-repond.component.css"],
+  selector: 'app-quiz-repond',
+  templateUrl: './quiz-repond.component.html',
+  styleUrls: ['./quiz-repond.component.css']
 })
 export class QuizRepondComponent implements OnInit {
   // Informations de l'étudiant
-  etudiantName = "Israa Bribech"
-  etudiantEmail = "israabribech2002@gmail.com"
-  etudiantMatricule = "E12345"
+  etudiantName = 'Israa Bribech';
+  etudiantEmail = 'israabribech2002@gmail.com';
+  etudiantMatricule = 'E12345';
 
   // Onglet actif
-  activeSemester: "semestre1" | "semestre2" = "semestre1"
+  activeSemester: 'semestre1' | 'semestre2' = 'semestre1';
 
-  // Matière sélectionnée
-  selectedMatiere: Matiere | null = null
+  // Filtres
+  searchTerm = '';
+  matiereFilter = '';
+  typeFilter = '';
 
-  // Quiz sélectionné
-  selectedQuiz: Quiz | null = null
+  // Tri
+  sortColumn = 'dateLimite';
+  sortDirection = 'asc';
 
-  // État du quiz
-  quizEnCours = false
-  quizTermine = false
-  tempsRestant = 0 // en secondes
-  intervalId: any = null
-  questionCourante = 0
+  // Modal de quiz
+  showQuizModal = false;
+  selectedQuiz: Quiz | null = null;
+  quizStarted = false;
+  quizCompleted = false;
+  currentQuestion = 0;
+  isSubmitting = false;
+  confirmationMessage = '';
+  timerInterval: any = null;
 
-  // Message de confirmation
-  confirmationMessage = ""
+  // Ajout pour les notifications
+  notifications: Notification[] = [];
+  showNotificationDropdown = false;
 
-  // État de soumission
-  isSubmitting = false
-
-  // Liste des matières du semestre 1
+  // Matières du semestre 1
   matieresSemestre1: Matiere[] = [
     {
-      id: "m1",
-      nom: "Programmation Web",
-      enseignant: "Dr. Martin Dupont",
-      credits: 6,
-      heures: 42,
-      couleur: "#6366f1",
-      icon: "fa-code",
-      departement: "Informatique",
-      quiz: [
-        {
-          id: "q1m1",
-          titre: "Quiz sur HTML et CSS",
-          description: "Ce quiz évalue vos connaissances sur les bases du HTML et CSS.",
-          dateCreation: new Date(2023, 8, 15),
-          dateLimite: new Date(2023, 9, 15),
-          duree: 30,
-          estTermine: false,
-          questions: [
-            {
-              id: "q1m1q1",
-              texte: "Quelle balise HTML est utilisée pour créer un lien hypertexte?",
-              type: "choix_unique",
-              options: [
-                { id: "q1m1q1o1", texte: "<a>", estCorrect: true },
-                { id: "q1m1q1o2", texte: "<link>", estCorrect: false },
-                { id: "q1m1q1o3", texte: "<href>", estCorrect: false },
-                { id: "q1m1q1o4", texte: "<url>", estCorrect: false },
-              ],
-              points: 2,
-            },
-            {
-              id: "q1m1q2",
-              texte: "Quelles propriétés CSS peuvent être utilisées pour centrer un élément horizontalement?",
-              type: "choix_multiple",
-              options: [
-                { id: "q1m1q2o1", texte: "margin: 0 auto;", estCorrect: true },
-                { id: "q1m1q2o2", texte: "text-align: center;", estCorrect: true },
-                { id: "q1m1q2o3", texte: "align: center;", estCorrect: false },
-                { id: "q1m1q2o4", texte: "display: flex; justify-content: center;", estCorrect: true },
-              ],
-              points: 3,
-            },
-            {
-              id: "q1m1q3",
-              texte: "Expliquez la différence entre les positionnements 'relative' et 'absolute' en CSS.",
-              type: "texte",
-              reponseTexte: "",
-              points: 5,
-            },
-          ],
-        },
-      ],
+      nom: 'Programmation Web',
+      couleur: '#6366f1',
+      icon: 'fa-code',
+      enseignants: {
+        cours: 'Dr. Martin Dupont',
+        td: 'Mme. Sophie Laurent',
+        tp: 'M. Jean Petit'
+      }
     },
     {
-      id: "m2",
-      nom: "Bases de données",
-      enseignant: "Prof. Sophie Laurent",
-      credits: 6,
-      heures: 42,
-      couleur: "#f59e0b",
-      icon: "fa-database",
-      departement: "Informatique",
-      quiz: [
-        {
-          id: "q1m2",
-          titre: "Quiz sur SQL",
-          description: "Ce quiz évalue vos connaissances sur les requêtes SQL de base.",
-          dateCreation: new Date(2023, 8, 20),
-          dateLimite: new Date(2023, 9, 20),
-          duree: 45,
-          estTermine: true,
-          dateCompletion: new Date(2023, 9, 18),
-          score: 85,
-          questions: [
-            {
-              id: "q1m2q1",
-              texte: "Quelle commande SQL est utilisée pour extraire des données d'une base de données?",
-              type: "choix_unique",
-              options: [
-                { id: "q1m2q1o1", texte: "SELECT", estCorrect: true },
-                { id: "q1m2q1o2", texte: "EXTRACT", estCorrect: false },
-                { id: "q1m2q1o3", texte: "GET", estCorrect: false },
-                { id: "q1m2q1o4", texte: "OPEN", estCorrect: false },
-              ],
-              reponseUtilisateur: "q1m2q1o1",
-              points: 2,
-            },
-            {
-              id: "q1m2q2",
-              texte: "Quelles clauses peuvent être utilisées avec une requête SELECT?",
-              type: "choix_multiple",
-              options: [
-                { id: "q1m2q2o1", texte: "WHERE", estCorrect: true },
-                { id: "q1m2q2o2", texte: "HAVING", estCorrect: true },
-                { id: "q1m2q2o3", texte: "SORT", estCorrect: false },
-                { id: "q1m2q2o4", texte: "GROUP BY", estCorrect: true },
-              ],
-              reponseUtilisateur: ["q1m2q2o1", "q1m2q2o2", "q1m2q2o4"],
-              points: 3,
-            },
-          ],
-        },
-      ],
+      nom: 'Bases de données',
+      couleur: '#f59e0b',
+      icon: 'fa-database',
+      enseignants: {
+        cours: 'Prof. Claire Dubois',
+        td: 'M. Thomas Bernard',
+        tp: 'Mme. Marie Leroy'
+      }
     },
     {
-      id: "m3",
-      nom: "Algorithmes avancés",
-      enseignant: "Dr. Jean Petit",
-      credits: 4,
-      heures: 36,
-      couleur: "#10b981",
-      icon: "fa-sitemap",
-      departement: "Informatique",
-      quiz: [],
-    },
-    {
-      id: "m4",
-      nom: "Intelligence artificielle",
-      enseignant: "Prof. Marie Leroy",
-      credits: 6,
-      heures: 48,
-      couleur: "#8b5cf6",
-      icon: "fa-brain",
-      departement: "Informatique",
-      quiz: [],
-    },
-    {
-      id: "m5",
-      nom: "Machine Learning",
-      enseignant: "Dr. Thomas Bernard",
-      credits: 6,
-      heures: 48,
-      couleur: "#ec4899",
-      icon: "fa-robot",
-      departement: "Informatique",
-      quiz: [],
-    },
-    {
-      id: "m6",
-      nom: "Algèbre linéaire",
-      enseignant: "Prof. Claire Dubois",
-      credits: 6,
-      heures: 42,
-      couleur: "#ef4444",
-      icon: "fa-square-root-alt",
-      departement: "Mathématiques",
-      quiz: [],
-    },
-    {
-      id: "m7",
-      nom: "Analyse numérique",
-      enseignant: "Dr. Philippe Martin",
-      credits: 4,
-      heures: 36,
-      couleur: "#0ea5e9",
-      icon: "fa-chart-line",
-      departement: "Mathématiques",
-      quiz: [],
-    },
-    {
-      id: "m8",
-      nom: "Réseaux informatiques",
-      enseignant: "Prof. Luc Moreau",
-      credits: 6,
-      heures: 42,
-      couleur: "#14b8a6",
-      icon: "fa-network-wired",
-      departement: "Informatique",
-      quiz: [],
-    },
-    {
-      id: "m9",
-      nom: "Sécurité informatique",
-      enseignant: "Dr. Isabelle Blanc",
-      credits: 4,
-      heures: 36,
-      couleur: "#f43f5e",
-      icon: "fa-shield-alt",
-      departement: "Informatique",
-      quiz: [],
-    },
-    {
-      id: "m10",
-      nom: "Développement mobile",
-      enseignant: "Prof. Antoine Rousseau",
-      credits: 6,
-      heures: 48,
-      couleur: "#84cc16",
-      icon: "fa-mobile-alt",
-      departement: "Informatique",
-      quiz: [],
-    },
-    {
-      id: "m11",
-      nom: "Gestion de projet",
-      enseignant: "Dr. Nathalie Mercier",
-      credits: 4,
-      heures: 36,
-      couleur: "#a855f7",
-      icon: "fa-tasks",
-      departement: "Gestion",
-      quiz: [],
-    },
-    {
-      id: "m12",
-      nom: "Anglais technique",
-      enseignant: "Prof. Sarah Johnson",
-      credits: 3,
-      heures: 30,
-      couleur: "#06b6d4",
-      icon: "fa-language",
-      departement: "Langues",
-      quiz: [],
-    },
-  ]
+      nom: 'Algorithmes avancés',
+      couleur: '#10b981',
+      icon: 'fa-sitemap',
+      enseignants: {
+        cours: 'Dr. Philippe Martin',
+        td: 'M. Alexandre Blanc',
+        tp: 'Mme. Julie Moreau'
+      }
+    }
+  ];
 
-  // Liste des matières du semestre 2
+  // Matières du semestre 2
   matieresSemestre2: Matiere[] = [
     {
-      id: "m13",
-      nom: "Frameworks JavaScript",
-      enseignant: "Dr. Julien Moreau",
-      credits: 6,
-      heures: 42,
-      couleur: "#8b5cf6",
-      icon: "fa-js",
-      departement: "Informatique",
-      quiz: [
-        {
-          id: "q1m13",
-          titre: "Quiz sur React et Angular",
-          description: "Ce quiz évalue vos connaissances sur les frameworks JavaScript modernes.",
-          dateCreation: new Date(2024, 1, 15),
-          dateLimite: new Date(2024, 2, 15),
-          duree: 40,
-          estTermine: false,
-          questions: [
-            {
-              id: "q1m13q1",
-              texte: "Quel hook React est utilisé pour gérer l'état local d'un composant?",
-              type: "choix_unique",
-              options: [
-                { id: "q1m13q1o1", texte: "useState", estCorrect: true },
-                { id: "q1m13q1o2", texte: "useEffect", estCorrect: false },
-                { id: "q1m13q1o3", texte: "useContext", estCorrect: false },
-                { id: "q1m13q1o4", texte: "useReducer", estCorrect: false },
-              ],
-              points: 2,
-            },
-            {
-              id: "q1m13q2",
-              texte: "Quels sont les décorateurs couramment utilisés dans Angular?",
-              type: "choix_multiple",
-              options: [
-                { id: "q1m13q2o1", texte: "@Component", estCorrect: true },
-                { id: "q1m13q2o2", texte: "@Injectable", estCorrect: true },
-                { id: "q1m13q2o3", texte: "@React", estCorrect: false },
-                { id: "q1m13q2o4", texte: "@Input", estCorrect: true },
-              ],
-              points: 3,
-            },
-          ],
-        },
-      ],
+      nom: 'Frameworks JavaScript',
+      couleur: '#8b5cf6',
+      icon: 'fa-js',
+      enseignants: {
+        cours: 'Dr. Julien Moreau',
+        td: 'Mme. Claire Dubois',
+        tp: 'M. Thomas Bernard'
+      }
     },
     {
-      id: "m14",
-      nom: "Développement Backend",
-      enseignant: "Prof. Lucie Girard",
-      credits: 6,
-      heures: 48,
-      couleur: "#10b981",
-      icon: "fa-server",
-      departement: "Informatique",
-      quiz: [],
+      nom: 'Développement Backend',
+      couleur: '#10b981',
+      icon: 'fa-server',
+      enseignants: {
+        cours: 'Prof. Lucie Girard',
+        td: 'M. Philippe Martin',
+        tp: 'Dr. Marc Dubois'
+      }
     },
     {
-      id: "m15",
-      nom: "Architecture logicielle",
-      enseignant: "Dr. Marc Dubois",
-      credits: 4,
-      heures: 36,
-      couleur: "#f59e0b",
-      icon: "fa-cubes",
-      departement: "Informatique",
-      quiz: [],
-    },
-    {
-      id: "m16",
-      nom: "DevOps & CI/CD",
-      enseignant: "Prof. Émilie Blanc",
-      credits: 4,
-      heures: 36,
-      couleur: "#ef4444",
-      icon: "fa-sync-alt",
-      departement: "Informatique",
-      quiz: [],
-    },
-    {
-      id: "m17",
-      nom: "Cloud Computing",
-      enseignant: "Dr. Pierre Lambert",
-      credits: 4,
-      heures: 36,
-      couleur: "#0ea5e9",
-      icon: "fa-cloud",
-      departement: "Informatique",
-      quiz: [],
-    },
-    {
-      id: "m18",
-      nom: "Statistiques appliquées",
-      enseignant: "Prof. Hélène Martin",
-      credits: 6,
-      heures: 42,
-      couleur: "#a855f7",
-      icon: "fa-chart-bar",
-      departement: "Mathématiques",
-      quiz: [],
-    },
-    {
-      id: "m19",
-      nom: "Analyse de données",
-      enseignant: "Dr. François Petit",
-      credits: 6,
-      heures: 48,
-      couleur: "#ec4899",
-      icon: "fa-table",
-      departement: "Informatique",
-      quiz: [],
-    },
-    {
-      id: "m20",
-      nom: "Blockchain & Cryptomonnaies",
-      enseignant: "Prof. Nicolas Roux",
-      credits: 4,
-      heures: 36,
-      couleur: "#6366f1",
-      icon: "fa-link",
-      departement: "Informatique",
-      quiz: [],
-    },
-    {
-      id: "m21",
-      nom: "UX/UI Design",
-      enseignant: "Dr. Sophie Mercier",
-      credits: 4,
-      heures: 36,
-      couleur: "#84cc16",
-      icon: "fa-paint-brush",
-      departement: "Design",
-      quiz: [],
-    },
-    {
-      id: "m22",
-      nom: "Projet de fin d'études",
-      enseignant: "Prof. Michel Durand",
-      credits: 8,
-      heures: 60,
-      couleur: "#14b8a6",
-      icon: "fa-project-diagram",
-      departement: "Informatique",
-      quiz: [],
-    },
-    {
-      id: "m23",
-      nom: "Éthique & Informatique",
-      enseignant: "Dr. Claire Fontaine",
-      credits: 3,
-      heures: 30,
-      couleur: "#f43f5e",
-      icon: "fa-balance-scale",
-      departement: "Sciences Humaines",
-      quiz: [],
-    },
-    {
-      id: "m24",
-      nom: "Communication professionnelle",
-      enseignant: "Prof. Jean-Paul Martin",
-      credits: 3,
-      heures: 30,
-      couleur: "#06b6d4",
-      icon: "fa-comments",
-      departement: "Communication",
-      quiz: [],
-    },
-  ]
+      nom: 'Architecture logicielle',
+      couleur: '#f59e0b',
+      icon: 'fa-cubes',
+      enseignants: {
+        cours: 'Dr. Marc Dubois',
+        td: 'Prof. Antoine Rousseau',
+        tp: 'Mme. Nathalie Mercier'
+      }
+    }
+  ];
 
-  constructor() {}
+  // Quiz du semestre 1
+  quizzesSemestre1: Quiz[] = [];
 
-  ngOnInit(): void {}
+  // Quiz du semestre 2
+  quizzesSemestre2: Quiz[] = [];
 
-  // Méthode pour obtenir le texte d'une option
-  getOptionTexte(question: Question, optionId: string | string[]): string {
-    if (!question.options) return "Non répondu"
+  // Quiz filtrés
+  filteredQuizzes: Quiz[] = [];
 
-    if (typeof optionId === "string") {
-      const option = question.options.find((o) => o.id === optionId)
-      return option ? option.texte : "Non répondu"
+  constructor(private router: Router) { }
+
+  ngOnInit(): void {
+    this.initializeQuizzes();
+    this.filterQuizzes();
+    this.loadNotifications();
+  }
+
+  // Écouteur d'événement pour fermer le dropdown quand on clique ailleurs
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    // Vérifier si le clic est en dehors du dropdown
+    const target = event.target as HTMLElement;
+    if (!target.closest('.notification-btn') && !target.closest('.notification-dropdown')) {
+      this.closeNotificationDropdown();
+    }
+  }
+
+  // Méthode pour charger les notifications
+  loadNotifications(): void {
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    // Simuler quelques notifications
+    this.notifications = [
+      {
+        id: 1,
+        type: "cours",
+        title: "Nouveau chapitre disponible",
+        message: 'Le chapitre "Introduction aux bases de données relationnelles" a été ajouté.',
+        date: now,
+        read: false
+      },
+      {
+        id: 2,
+        type: "devoir",
+        title: "Nouveau devoir assigné",
+        message: 'Un nouveau devoir "Implémentation d\'un algorithme de tri" a été assigné.',
+        date: yesterday,
+        read: false
+      },
+      {
+        id: 3,
+        type: "quiz",
+        title: "Nouveau quiz disponible",
+        message: 'Un nouveau quiz sur "Les réseaux de neurones" est maintenant disponible.',
+        date: yesterday,
+        read: false
+      }
+    ];
+  }
+
+  // Méthode pour afficher/masquer le dropdown de notifications
+  toggleNotificationDropdown(event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showNotificationDropdown = !this.showNotificationDropdown;
+  }
+
+  // Méthode pour fermer le dropdown si on clique ailleurs
+  closeNotificationDropdown(): void {
+    this.showNotificationDropdown = false;
+  }
+
+  // Méthode pour marquer une notification comme lue
+  markAsRead(notification: Notification): void {
+    notification.read = true;
+  }
+
+  // Méthode pour obtenir le nombre de notifications non lues
+  getUnreadNotificationsCount(): number {
+    return this.notifications.filter(n => !n.read).length;
+  }
+
+  // Méthode pour obtenir l'icône en fonction du type de notification
+  getNotificationIcon(type: string): string {
+    switch (type) {
+      case "cours":
+        return "fa-book";
+      case "devoir":
+        return "fa-tasks";
+      case "quiz":
+        return "fa-question-circle";
+      default:
+        return "fa-bell";
+    }
+  }
+
+  // Méthode pour formater le temps écoulé
+  formatTimeAgo(date: Date): string {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) {
+      return "À l'instant";
     }
 
-    return "Non répondu"
-  }
-
-  // Méthode pour vérifier si une question a des réponses
-  hasResponses(question: Question): boolean {
-    if (!question.reponseUtilisateur) return false
-
-    if (Array.isArray(question.reponseUtilisateur)) {
-      return question.reponseUtilisateur.length > 0
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) {
+      return `Il y a ${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""}`;
     }
 
-    return question.reponseUtilisateur !== ""
-  }
-
-  // Méthode pour obtenir un tableau de réponses
-  getResponseArray(question: Question): string[] {
-    if (!question.reponseUtilisateur) return []
-
-    if (Array.isArray(question.reponseUtilisateur)) {
-      return question.reponseUtilisateur
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) {
+      return `Il y a ${diffInHours} heure${diffInHours > 1 ? "s" : ""}`;
     }
 
-    return []
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) {
+      return `Il y a ${diffInDays} jour${diffInDays > 1 ? "s" : ""}`;
+    }
+
+    return this.formatDate(date);
   }
 
-  // Méthode pour changer de semestre
-  changeSemester(semester: "semestre1" | "semestre2"): void {
-    this.activeSemester = semester
-    this.selectedMatiere = null
-    this.selectedQuiz = null
-    this.quizEnCours = false
-    this.quizTermine = false
-    this.confirmationMessage = ""
-    this.arreterQuiz()
+  // Méthode pour naviguer vers la page de notifications
+  navigateToNotifications(): void {
+    this.router.navigate(["/troixieme-interface/notification"]);
+    this.closeNotificationDropdown();
   }
 
-  // Méthode pour sélectionner une matière
-  selectMatiere(matiere: Matiere): void {
-    this.selectedMatiere = matiere
-    this.selectedQuiz = null
-    this.quizEnCours = false
-    this.quizTermine = false
-    this.confirmationMessage = ""
+  // Initialiser les quiz
+  initializeQuizzes(): void {
+    // Générer les quiz pour le semestre 1
+    this.quizzesSemestre1 = [];
+    this.matieresSemestre1.forEach(matiere => {
+      // Quiz de cours
+      this.quizzesSemestre1.push(this.createQuiz(
+        `quiz-s1-${this.slugify(matiere.nom)}-cours`,
+        `Quiz sur ${matiere.nom}`,
+        `Ce quiz évalue vos connaissances sur les concepts fondamentaux de ${matiere.nom}.`,
+        matiere.nom,
+        new Date(2023, 8, 15),
+        new Date(2023, 9, 15),
+        30,
+        `assets/quiz/${this.slugify(matiere.nom)}/cours/quiz.pdf`,
+        false,
+        'cours'
+      ));
+
+      // Quiz de TD
+      this.quizzesSemestre1.push(this.createQuiz(
+        `quiz-s1-${this.slugify(matiere.nom)}-td`,
+        `TD - Exercices pratiques sur ${matiere.nom}`,
+        `Ce quiz contient des exercices pratiques sur l'application des concepts de ${matiere.nom}.`,
+        matiere.nom,
+        new Date(2023, 8, 20),
+        new Date(2023, 9, 20),
+        45,
+        `assets/quiz/${this.slugify(matiere.nom)}/td/quiz.pdf`,
+        Math.random() > 0.7, // Aléatoirement terminé ou non
+        'td'
+      ));
+
+      // Quiz de TP
+      this.quizzesSemestre1.push(this.createQuiz(
+        `quiz-s1-${this.slugify(matiere.nom)}-tp`,
+        `TP - Projet pratique sur ${matiere.nom}`,
+        `Ce quiz évalue votre capacité à appliquer les concepts de ${matiere.nom} dans un projet pratique.`,
+        matiere.nom,
+        new Date(2023, 8, 25),
+        new Date(2023, 9, 25),
+        60,
+        `assets/quiz/${this.slugify(matiere.nom)}/tp/quiz.pdf`,
+        false,
+        'tp'
+      ));
+    });
+
+    // Générer les quiz pour le semestre 2
+    this.quizzesSemestre2 = [];
+    this.matieresSemestre2.forEach(matiere => {
+      // Quiz de cours
+      this.quizzesSemestre2.push(this.createQuiz(
+        `quiz-s2-${this.slugify(matiere.nom)}-cours`,
+        `Quiz sur ${matiere.nom}`,
+        `Ce quiz évalue vos connaissances sur les concepts fondamentaux de ${matiere.nom}.`,
+        matiere.nom,
+        new Date(2024, 1, 15),
+        new Date(2024, 2, 15),
+        30,
+        `assets/quiz/${this.slugify(matiere.nom)}/cours/quiz.pdf`,
+        false,
+        'cours'
+      ));
+
+      // Quiz de TD
+      this.quizzesSemestre2.push(this.createQuiz(
+        `quiz-s2-${this.slugify(matiere.nom)}-td`,
+        `TD - Exercices pratiques sur ${matiere.nom}`,
+        `Ce quiz contient des exercices pratiques sur l'application des concepts de ${matiere.nom}.`,
+        matiere.nom,
+        new Date(2024, 1, 20),
+        new Date(2024, 2, 20),
+        45,
+        `assets/quiz/${this.slugify(matiere.nom)}/td/quiz.pdf`,
+        false,
+        'td'
+      ));
+
+      // Quiz de TP
+      this.quizzesSemestre2.push(this.createQuiz(
+        `quiz-s2-${this.slugify(matiere.nom)}-tp`,
+        `TP - Projet pratique sur ${matiere.nom}`,
+        `Ce quiz évalue votre capacité à appliquer les concepts de ${matiere.nom} dans un projet pratique.`,
+        matiere.nom,
+        new Date(2024, 1, 25),
+        new Date(2024, 2, 25),
+        60,
+        `assets/quiz/${this.slugify(matiere.nom)}/tp/quiz.pdf`,
+        false,
+        'tp'
+      ));
+    });
   }
 
-  // Méthode pour revenir à la liste des matières
-  backToMatieres(): void {
-    this.selectedMatiere = null
-    this.selectedQuiz = null
-    this.quizEnCours = false
-    this.quizTermine = false
-    this.confirmationMessage = ""
-    this.arreterQuiz()
-    // Ne pas naviguer vers le tableau de bord, rester sur l'interface des quiz
+  // Créer un quiz
+  createQuiz(id: string, titre: string, description: string, matiere: string, dateCreation: Date, dateLimite: Date, duree: number, fichierConsigne: string, estTermine: boolean, type: 'cours' | 'td' | 'tp'): Quiz {
+    const quiz: Quiz = {
+      id,
+      titre,
+      description,
+      matiere,
+      dateCreation,
+      dateLimite,
+      duree,
+      fichierConsigne,
+      estTermine,
+      type,
+      questions: []
+    };
+
+    // Ajouter des questions au quiz
+    quiz.questions = this.generateQuestions(quiz.id, quiz.matiere, quiz.type);
+
+    // Si le quiz est terminé, ajouter une date de complétion et un score
+    if (estTermine) {
+      quiz.dateCompletion = new Date(dateLimite.getTime() - Math.random() * 5 * 24 * 60 * 60 * 1000); // Entre 0 et 5 jours avant la date limite
+      quiz.score = Math.floor(Math.random() * 31) + 70; // Score entre 70 et 100
+    }
+
+    return quiz;
   }
 
-  // Méthode pour sélectionner un quiz
-  selectQuiz(quiz: Quiz): void {
-    this.selectedQuiz = quiz
-    this.quizEnCours = false
-    this.quizTermine = false
-    this.confirmationMessage = ""
+  // Générer des questions pour un quiz
+  generateQuestions(quizId: string, matiere: string, type: 'cours' | 'td' | 'tp'): Question[] {
+    const questions: Question[] = [];
+    const nbQuestions = Math.floor(Math.random() * 3) + 3; // Entre 3 et 5 questions
+
+    for (let i = 1; i <= nbQuestions; i++) {
+      const questionType = this.getRandomQuestionType();
+      const question: Question = {
+        id: `${quizId}-q${i}`,
+        texte: this.generateQuestionText(i, matiere, type),
+        type: questionType,
+        points: questionType === 'texte' ? 5 : (questionType === 'choix_multiple' ? 3 : 2)
+      };
+
+      if (questionType === 'choix_unique' || questionType === 'choix_multiple') {
+        question.options = this.generateOptions(question.id);
+      }
+
+      questions.push(question);
+    }
+
+    return questions;
   }
 
-  // Méthode pour revenir à la liste des quiz
-  backToQuizzes(): void {
-    this.selectedQuiz = null
-    this.quizEnCours = false
-    this.quizTermine = false
-    this.confirmationMessage = ""
-    this.arreterQuiz()
+  // Générer un texte de question
+  generateQuestionText(index: number, matiere: string, type: 'cours' | 'td' | 'tp'): string {
+    const typeLabel = this.getTypeLabel(type);
+    const questions = [
+      `Question ${index}: Expliquez le concept principal de ${matiere} abordé dans ce ${typeLabel}.`,
+      `Question ${index}: Quels sont les avantages et inconvénients de l'approche présentée en ${matiere}?`,
+      `Question ${index}: Comment appliquer les principes de ${matiere} dans un contexte professionnel?`,
+      `Question ${index}: Analysez les différentes méthodes utilisées en ${matiere}.`,
+      `Question ${index}: Quelles sont les tendances actuelles dans le domaine de ${matiere}?`
+    ];
+    return questions[Math.floor(Math.random() * questions.length)];
   }
 
-  // Méthode pour démarrer un quiz
-  demarrerQuiz(): void {
+  // Générer des options pour une question à choix
+  generateOptions(questionId: string): { id: string; texte: string; estCorrect: boolean; }[] {
+    const options = [];
+    const nbOptions = 4;
+    const correctOptionIndex = Math.floor(Math.random() * nbOptions);
+
+    for (let i = 0; i < nbOptions; i++) {
+      options.push({
+        id: `${questionId}-o${i + 1}`,
+        texte: `Option ${i + 1}`,
+        estCorrect: i === correctOptionIndex
+      });
+    }
+
+    return options;
+  }
+
+  // Obtenir un type de question aléatoire
+  getRandomQuestionType(): 'choix_unique' | 'choix_multiple' | 'texte' {
+    const types: ('choix_unique' | 'choix_multiple' | 'texte')[] = ['choix_unique', 'choix_multiple', 'texte'];
+    return types[Math.floor(Math.random() * types.length)];
+  }
+
+  // Convertir un nom en slug pour les chemins de fichiers
+  slugify(text: string): string {
+    return text
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\-]+/g, '')
+      .replace(/\-\-+/g, '-')
+      .replace(/^-+/, '')
+      .replace(/-+$/, '');
+  }
+
+  // Changer de semestre
+  changeSemester(semester: 'semestre1' | 'semestre2'): void {
+    this.activeSemester = semester;
+    this.filterQuizzes();
+  }
+
+  // Filtrer les quiz
+  filterQuizzes(): void {
+    let quizzes = this.activeSemester === 'semestre1' ? this.quizzesSemestre1 : this.quizzesSemestre2;
+
+    // Filtre par recherche
+    if (this.searchTerm) {
+      const searchLower = this.searchTerm.toLowerCase();
+      quizzes = quizzes.filter(quiz => 
+        quiz.titre.toLowerCase().includes(searchLower) || 
+        quiz.description.toLowerCase().includes(searchLower) ||
+        quiz.matiere.toLowerCase().includes(searchLower) ||
+        this.getEnseignantByType(quiz.matiere, quiz.type).toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Filtre par matière
+    if (this.matiereFilter) {
+      quizzes = quizzes.filter(quiz => quiz.matiere === this.matiereFilter);
+    }
+
+    // Filtre par type
+    if (this.typeFilter) {
+      quizzes = quizzes.filter(quiz => quiz.type === this.typeFilter);
+    }
+
+    // Tri
+    quizzes = this.sortQuizzes(quizzes);
+
+    this.filteredQuizzes = quizzes;
+  }
+
+  // Trier les quiz
+  sortTable(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    this.filterQuizzes();
+  }
+
+  // Obtenir l'icône de tri
+  getSortIcon(column: string): string {
+    if (this.sortColumn !== column) {
+      return 'fa-sort';
+    }
+    return this.sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down';
+  }
+
+  // Trier les quiz
+  sortQuizzes(quizzes: Quiz[]): Quiz[] {
+    return quizzes.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (this.sortColumn) {
+        case 'enseignant':
+          comparison = this.getEnseignantByType(a.matiere, a.type).localeCompare(this.getEnseignantByType(b.matiere, b.type));
+          break;
+        case 'matiere':
+          comparison = a.matiere.localeCompare(b.matiere);
+          break;
+        case 'type':
+          comparison = a.type.localeCompare(b.type);
+          break;
+        case 'dateCreation':
+          comparison = a.dateCreation.getTime() - b.dateCreation.getTime();
+          break;
+        case 'dateLimite':
+          comparison = a.dateLimite.getTime() - b.dateLimite.getTime();
+          break;
+        default:
+          comparison = a.dateLimite.getTime() - b.dateLimite.getTime();
+      }
+      
+      return this.sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }
+
+  // Obtenir les matières uniques pour le semestre actif
+  getUniqueMatieresForSemester(): string[] {
+    const quizzes = this.activeSemester === 'semestre1' ? this.quizzesSemestre1 : this.quizzesSemestre2;
+    const matieres = new Set<string>();
+    quizzes.forEach(quiz => matieres.add(quiz.matiere));
+    return Array.from(matieres).sort();
+  }
+
+  // Obtenir l'enseignant selon le type de cours
+  getEnseignantByType(matiereName: string, type: 'cours' | 'td' | 'tp'): string {
+    const matieres = [...this.matieresSemestre1, ...this.matieresSemestre2];
+    const matiere = matieres.find(m => m.nom === matiereName);
+    
+    if (matiere && matiere.enseignants) {
+      return matiere.enseignants[type];
+    }
+    
+    return 'Enseignant inconnu';
+  }
+
+  // Obtenir l'initiale de l'enseignant
+  getEnseignantInitial(quiz: Quiz): string {
+    const enseignant = this.getEnseignantByType(quiz.matiere, quiz.type);
+    return enseignant.charAt(0);
+  }
+
+  // Obtenir la couleur de la matière
+  getMatiereCouleur(matiereName: string): string {
+    const matieres = [...this.matieresSemestre1, ...this.matieresSemestre2];
+    const matiere = matieres.find(m => m.nom === matiereName);
+    return matiere ? matiere.couleur : '#6366f1';
+  }
+
+  // Obtenir l'icône de la matière
+  getMatiereIcon(matiereName: string): string {
+    const matieres = [...this.matieresSemestre1, ...this.matieresSemestre2];
+    const matiere = matieres.find(m => m.nom === matiereName);
+    return matiere ? matiere.icon : 'fa-book';
+  }
+
+  // Obtenir le libellé pour un type de cours
+  getTypeLabel(type: string): string {
+    switch (type) {
+      case 'cours':
+        return 'Cours';
+      case 'td':
+        return 'TD';
+      case 'tp':
+        return 'TP';
+      default:
+        return type;
+    }
+  }
+
+  // Commencer un quiz
+  commencerQuiz(quiz: Quiz): void {
+    this.selectedQuiz = quiz;
+    this.showQuizModal = true;
+    this.quizStarted = false;
+    this.quizCompleted = false;
+    this.currentQuestion = 0;
+    this.confirmationMessage = '';
+  }
+
+  // Fermer le modal de quiz
+  closeQuizModal(event: Event): void {
+    if (
+      event.target === event.currentTarget || 
+      (event.target as HTMLElement).classList.contains('modal-close') ||
+      (event.target as HTMLElement).classList.contains('btn-cancel')
+    ) {
+      this.showQuizModal = false;
+      this.selectedQuiz = null;
+      this.quizStarted = false;
+      this.quizCompleted = false;
+      this.confirmationMessage = '';
+      this.stopTimer();
+    }
+  }
+
+  // Démarrer le quiz
+  startQuiz(): void {
     if (this.selectedQuiz) {
-      this.quizEnCours = true
-      this.quizTermine = false
-      this.questionCourante = 0
-      this.tempsRestant = this.selectedQuiz.duree * 60
+      this.quizStarted = true;
+      this.quizCompleted = false;
+      this.currentQuestion = 0;
 
       // Initialiser les réponses utilisateur
-      this.selectedQuiz.questions.forEach((question) => {
-        if (question.type === "choix_unique") {
-          question.reponseUtilisateur = ""
-        } else if (question.type === "choix_multiple") {
-          question.reponseUtilisateur = []
-        } else if (question.type === "texte") {
-          question.reponseUtilisateur = ""
+      this.selectedQuiz.questions.forEach(question => {
+        if (question.type === 'choix_unique') {
+          question.reponseUtilisateur = '';
+        } else if (question.type === 'choix_multiple') {
+          question.reponseUtilisateur = [];
+        } else if (question.type === 'texte') {
+          question.reponseUtilisateur = '';
         }
-      })
+      });
 
       // Démarrer le timer
-      this.intervalId = setInterval(() => {
-        this.tempsRestant--
-        if (this.tempsRestant <= 0) {
-          this.terminerQuiz()
+      this.startTimer();
+    }
+  }
+
+  // Démarrer le timer
+  startTimer(): void {
+    if (this.selectedQuiz) {
+      const endTime = new Date().getTime() + this.selectedQuiz.duree * 60 * 1000;
+      
+      this.timerInterval = setInterval(() => {
+        const now = new Date().getTime();
+        const distance = endTime - now;
+        
+        if (distance <= 0) {
+          this.terminerQuiz();
         }
-      }, 1000)
+      }, 1000);
     }
   }
 
-  // Méthode pour arrêter le quiz
-  arreterQuiz(): void {
-    if (this.intervalId) {
-      clearInterval(this.intervalId)
-      this.intervalId = null
+  // Arrêter le timer
+  stopTimer(): void {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
     }
   }
 
-  // Méthode pour terminer le quiz
+  // Passer à la question suivante
+  nextQuestion(): void {
+    if (this.selectedQuiz && this.currentQuestion < this.selectedQuiz.questions.length - 1) {
+      this.currentQuestion++;
+    }
+  }
+
+  // Revenir à la question précédente
+  previousQuestion(): void {
+    if (this.currentQuestion > 0) {
+      this.currentQuestion--;
+    }
+  }
+
+  // Terminer le quiz
   terminerQuiz(): void {
-    this.arreterQuiz()
-    this.quizEnCours = false
-    this.quizTermine = true
+    this.stopTimer();
+    this.quizStarted = false;
+    this.quizCompleted = true;
 
     if (this.selectedQuiz) {
       // Calculer le score
-      let pointsTotal = 0
-      let pointsObtenus = 0
+      let pointsTotal = 0;
+      let pointsObtenus = 0;
 
-      this.selectedQuiz.questions.forEach((question) => {
-        pointsTotal += question.points
+      this.selectedQuiz.questions.forEach(question => {
+        pointsTotal += question.points;
 
-        if (question.type === "choix_unique") {
-          const reponseUtilisateur = question.reponseUtilisateur as string
-          const optionSelectionnee = question.options?.find((option) => option.id === reponseUtilisateur)
+        if (question.type === 'choix_unique') {
+          const reponseUtilisateur = question.reponseUtilisateur as string;
+          const optionSelectionnee = question.options?.find(option => option.id === reponseUtilisateur);
           if (optionSelectionnee && optionSelectionnee.estCorrect) {
-            pointsObtenus += question.points
+            pointsObtenus += question.points;
           }
-        } else if (question.type === "choix_multiple") {
-          const reponsesUtilisateur = question.reponseUtilisateur as string[]
-          const optionsCorrectes =
-            question.options?.filter((option) => option.estCorrect).map((option) => option.id) || []
-          const optionsSelectionnees = reponsesUtilisateur || []
+        } else if (question.type === 'choix_multiple') {
+          const reponsesUtilisateur = question.reponseUtilisateur as string[];
+          const optionsCorrectes = question.options?.filter(option => option.estCorrect).map(option => option.id) || [];
+          const optionsSelectionnees = reponsesUtilisateur || [];
 
           // Vérifier si toutes les options correctes sont sélectionnées et aucune incorrecte
-          const toutesCorrectesSelectionnees = optionsCorrectes.every((id) => optionsSelectionnees.includes(id))
-          const aucuneIncorrecteSelectionnee = optionsSelectionnees.every((id) => optionsCorrectes.includes(id))
+          const toutesCorrectesSelectionnees = optionsCorrectes.every(id => optionsSelectionnees.includes(id));
+          const aucuneIncorrecteSelectionnee = optionsSelectionnees.every(id => optionsCorrectes.includes(id));
 
           if (toutesCorrectesSelectionnees && aucuneIncorrecteSelectionnee) {
-            pointsObtenus += question.points
+            pointsObtenus += question.points;
           } else if (toutesCorrectesSelectionnees || aucuneIncorrecteSelectionnee) {
             // Points partiels si certaines bonnes réponses
-            pointsObtenus += question.points / 2
+            pointsObtenus += question.points / 2;
           }
         }
         // Pour les questions de type texte, elles seront évaluées par l'enseignant
-      })
+      });
 
       // Calculer le pourcentage
-      const pourcentage = Math.round((pointsObtenus / pointsTotal) * 100)
+      const pourcentage = Math.round((pointsObtenus / pointsTotal) * 100);
 
       // Mettre à jour le quiz
-      this.selectedQuiz.estTermine = true
-      this.selectedQuiz.dateCompletion = new Date()
-      this.selectedQuiz.score = pourcentage
+      this.selectedQuiz.score = pourcentage;
     }
   }
 
-  // Méthode pour soumettre le quiz
+  // Soumettre le quiz
   soumettreQuiz(): void {
-    this.isSubmitting = true
+    this.isSubmitting = true;
 
     // Simuler un délai de soumission
     setTimeout(() => {
-      if (this.selectedQuiz && this.selectedMatiere) {
+      if (this.selectedQuiz) {
         // Dans une application réelle, vous enverriez les réponses à un serveur
-        console.log("Soumission du quiz:", {
-          matiere: this.selectedMatiere.nom,
+        console.log('Soumission du quiz:', {
+          matiere: this.selectedQuiz.matiere,
           quiz: this.selectedQuiz.titre,
-          reponses: this.selectedQuiz.questions.map((q) => ({
+          reponses: this.selectedQuiz.questions.map(q => ({
             id: q.id,
-            reponse: q.reponseUtilisateur,
+            reponse: q.reponseUtilisateur
           })),
           email: this.etudiantEmail,
-          date: new Date(),
-        })
+          date: new Date()
+        });
+
+        // Mettre à jour l'état du quiz
+        this.selectedQuiz.estTermine = true;
+        this.selectedQuiz.dateCompletion = new Date();
+
+        // Mettre à jour les quiz filtrés
+        this.filterQuizzes();
 
         // Afficher un message de confirmation
-        this.confirmationMessage = "Votre quiz a été soumis avec succès !"
+        this.confirmationMessage = 'Votre quiz a été soumis avec succès !';
 
-        this.isSubmitting = false
+        this.isSubmitting = false;
       }
-    }, 2000)
+    }, 2000);
   }
 
-  // Méthode pour passer à la question suivante
-  questionSuivante(): void {
-    if (this.selectedQuiz && this.questionCourante < this.selectedQuiz.questions.length - 1) {
-      this.questionCourante++
-    }
-  }
-
-  // Méthode pour revenir à la question précédente
-  questionPrecedente(): void {
-    if (this.questionCourante > 0) {
-      this.questionCourante--
-    }
-  }
-
-  // Méthode pour gérer les réponses à choix unique
+  // Gérer les réponses à choix unique
   onChoixUnique(questionId: string, optionId: string): void {
     if (this.selectedQuiz) {
-      const question = this.selectedQuiz.questions.find((q) => q.id === questionId)
+      const question = this.selectedQuiz.questions.find(q => q.id === questionId);
       if (question) {
-        question.reponseUtilisateur = optionId
+        question.reponseUtilisateur = optionId;
       }
     }
   }
 
-  // Méthode pour gérer les réponses à choix multiple
+  // Gérer les réponses à choix multiple
   onChoixMultiple(questionId: string, optionId: string, event: any): void {
     if (this.selectedQuiz) {
-      const question = this.selectedQuiz.questions.find((q) => q.id === questionId)
+      const question = this.selectedQuiz.questions.find(q => q.id === questionId);
       if (question) {
-        const reponses = (question.reponseUtilisateur as string[]) || []
+        const reponses = (question.reponseUtilisateur as string[]) || [];
 
         if (event.target.checked) {
           if (!reponses.includes(optionId)) {
-            question.reponseUtilisateur = [...reponses, optionId]
+            question.reponseUtilisateur = [...reponses, optionId];
           }
         } else {
-          question.reponseUtilisateur = reponses.filter((id) => id !== optionId)
+          question.reponseUtilisateur = reponses.filter(id => id !== optionId);
         }
       }
     }
   }
 
-  // Méthode pour gérer les réponses textuelles
-  onReponseTexte(questionId: string, texte: string): void {
-    if (this.selectedQuiz) {
-      const question = this.selectedQuiz.questions.find((q) => q.id === questionId)
+  // Gérer les réponses textuelles
+  onTextareaInput(event: Event, questionId: string): void {
+    const target = event.target as HTMLTextAreaElement;
+    if (target && this.selectedQuiz) {
+      const question = this.selectedQuiz.questions.find(q => q.id === questionId);
       if (question) {
-        question.reponseUtilisateur = texte
+        question.reponseUtilisateur = target.value;
       }
     }
   }
 
-  // Ajouter cette méthode pour gérer l'événement input de manière sécurisée
-  onTextareaInput(event: Event, questionId: string): void {
-    const target = event.target as HTMLTextAreaElement
-    if (target && target.value !== undefined) {
-      this.onReponseTexte(questionId, target.value)
-    }
-  }
-
-  // Méthode pour vérifier si une option est sélectionnée (choix unique)
+  // Vérifier si une option est sélectionnée (choix unique)
   isOptionSelected(questionId: string, optionId: string): boolean {
     if (this.selectedQuiz) {
-      const question = this.selectedQuiz.questions.find((q) => q.id === questionId)
+      const question = this.selectedQuiz.questions.find(q => q.id === questionId);
       if (question && question.reponseUtilisateur) {
-        return question.reponseUtilisateur === optionId
+        return question.reponseUtilisateur === optionId;
       }
     }
-    return false
+    return false;
   }
 
-  // Méthode pour vérifier si une option est sélectionnée (choix multiple)
+  // Vérifier si une option est sélectionnée (choix multiple)
   isOptionChecked(questionId: string, optionId: string): boolean {
     if (this.selectedQuiz) {
-      const question = this.selectedQuiz.questions.find((q) => q.id === questionId)
+      const question = this.selectedQuiz.questions.find(q => q.id === questionId);
       if (question && question.reponseUtilisateur) {
-        const reponses = question.reponseUtilisateur as string[]
-        return reponses.includes(optionId)
+        const reponses = question.reponseUtilisateur as string[];
+        return reponses.includes(optionId);
       }
     }
-    return false
+    return false;
   }
 
-  // Méthode pour formater le temps restant
-  formatTempsRestant(): string {
-    const minutes = Math.floor(this.tempsRestant / 60)
-    const secondes = this.tempsRestant % 60
-    return `${minutes.toString().padStart(2, "0")}:${secondes.toString().padStart(2, "0")}`
+  // Obtenir le texte d'une option
+  getOptionTexte(question: Question, optionId: string | string[]): string {
+    if (!question.options) return 'Non répondu';
+
+    if (typeof optionId === 'string') {
+      const option = question.options.find(o => o.id === optionId);
+      return option ? option.texte : 'Non répondu';
+    }
+
+    return 'Non répondu';
   }
 
-  // Méthode pour formater les dates
+  // Vérifier si une question a des réponses
+  hasResponses(question: Question): boolean {
+    if (!question.reponseUtilisateur) return false;
+
+    if (Array.isArray(question.reponseUtilisateur)) {
+      return question.reponseUtilisateur.length > 0;
+    }
+
+    return question.reponseUtilisateur !== '';
+  }
+
+  // Obtenir un tableau de réponses
+  getResponseArray(question: Question): string[] {
+    if (!question.reponseUtilisateur) return [];
+
+    if (Array.isArray(question.reponseUtilisateur)) {
+      return question.reponseUtilisateur;
+    }
+
+    return [];
+  }
+
+  // Formater les dates
   formatDate(date: Date): string {
-    return date.toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    })
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
   }
-  isAnyQuizCloseToDeadline(quizzes: Quiz[]): boolean {
-    return quizzes.some(q => this.isCloseToDeadline(q));
-  }
-  
-  isAnyQuizLate(quizzes: Quiz[]): boolean {
-    return quizzes.some(q => this.isLate(q));
-  }
-  // Méthode pour vérifier si un quiz est en retard
+
+  // Vérifier si un quiz est en retard
   isLate(quiz: Quiz): boolean {
-    const today = new Date()
-    return !quiz.estTermine && today > quiz.dateLimite
+    const today = new Date();
+    return !quiz.estTermine && today > quiz.dateLimite;
   }
 
-  // Méthode pour vérifier si un quiz est proche de la date limite
+  // Vérifier si un quiz est proche de la date limite
   isCloseToDeadline(quiz: Quiz): boolean {
-    const today = new Date()
-    const diffTime = quiz.dateLimite.getTime() - today.getTime()
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    return !quiz.estTermine && diffDays <= 3 && diffDays > 0
+    const today = new Date();
+    const diffTime = quiz.dateLimite.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return !quiz.estTermine && diffDays <= 3 && diffDays > 0;
   }
 
-  // Méthode pour obtenir le nombre de jours restants
+  // Obtenir le nombre de jours restants
   getJoursRestants(dateLimite: Date): number {
-    const today = new Date()
-    const diffTime = dateLimite.getTime() - today.getTime()
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    const today = new Date();
+    const diffTime = dateLimite.getTime() - today.getTime();
+    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
   }
 
-  // Méthode pour générer un quiz IA
-  genererQuizIA(): void {
-    if (this.selectedMatiere) {
-      // Simuler la génération d'un quiz IA
-      const nouveauQuiz: Quiz = {
-        id: `qia${this.selectedMatiere.id}`,
-        titre: `Quiz IA sur ${this.selectedMatiere.nom}`,
-        description: `Quiz généré par l'IA pour tester vos connaissances sur ${this.selectedMatiere.nom}.`,
-        dateCreation: new Date(),
-        dateLimite: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000), // +7 jours
-        duree: 30,
-        estTermine: false,
-        questions: [
-          {
-            id: `qia${this.selectedMatiere.id}q1`,
-            texte: `Question 1 sur ${this.selectedMatiere.nom}`,
-            type: "choix_unique",
-            options: [
-              { id: `qia${this.selectedMatiere.id}q1o1`, texte: "Option 1", estCorrect: true },
-              { id: `qia${this.selectedMatiere.id}q1o2`, texte: "Option 2", estCorrect: false },
-              { id: `qia${this.selectedMatiere.id}q1o3`, texte: "Option 3", estCorrect: false },
-              { id: `qia${this.selectedMatiere.id}q1o4`, texte: "Option 4", estCorrect: false },
-            ],
-            points: 2,
-          },
-          {
-            id: `qia${this.selectedMatiere.id}q2`,
-            texte: `Question 2 sur ${this.selectedMatiere.nom}`,
-            type: "choix_multiple",
-            options: [
-              { id: `qia${this.selectedMatiere.id}q2o1`, texte: "Option 1", estCorrect: true },
-              { id: `qia${this.selectedMatiere.id}q2o2`, texte: "Option 1", estCorrect: true },
-              { id: `qia${this.selectedMatiere.id}q2o2`, texte: "Option 2", estCorrect: true },
-              { id: `qia${this.selectedMatiere.id}q2o3`, texte: "Option 3", estCorrect: false },
-              { id: `qia${this.selectedMatiere.id}q2o4`, texte: "Option 4", estCorrect: false },
-            ],
-            points: 3,
-          },
-          {
-            id: `qia${this.selectedMatiere.id}q3`,
-            texte: `Question 3 sur ${this.selectedMatiere.nom}`,
-            type: "texte",
-            reponseTexte: "",
-            points: 5,
-          },
-        ],
-      }
-
-      // Ajouter le quiz à la matière
-      this.selectedMatiere.quiz.push(nouveauQuiz)
-
-      // Sélectionner le nouveau quiz
-      this.selectedQuiz = nouveauQuiz
+  // Obtenir la classe CSS pour une ligne de tableau
+  getRowClass(quiz: Quiz): string {
+    if (quiz.estTermine) {
+      return 'row-termine';
+    } else if (this.isLate(quiz)) {
+      return 'row-retard';
+    } else if (this.isCloseToDeadline(quiz)) {
+      return 'row-proche';
     }
+    return '';
+  }
+
+  // Générer un quiz IA
+  genererQuizIA(): void {
+    // Sélectionner une matière aléatoire du semestre actif
+    const matieres = this.activeSemester === 'semestre1' ? this.matieresSemestre1 : this.matieresSemestre2;
+    const matiere = matieres[Math.floor(Math.random() * matieres.length)];
+    
+    // Sélectionner un type aléatoire
+    const types: ('cours' | 'td' | 'tp')[] = ['cours', 'td', 'tp'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    
+    // Créer un nouveau quiz IA
+    const newQuiz = this.createQuiz(
+      `quiz-ia-${this.slugify(matiere.nom)}-${type}-${Date.now()}`,
+      `Quiz IA sur ${matiere.nom} (${this.getTypeLabel(type)})`,
+      `Ce quiz généré par l'IA teste vos connaissances sur ${matiere.nom} (${this.getTypeLabel(type)}).`,
+      matiere.nom,
+      new Date(),
+      new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000), // +7 jours
+      30,
+      `assets/quiz/${this.slugify(matiere.nom)}/${type}/quiz-ia.pdf`,
+      false,
+      type
+    );
+    
+    // Ajouter le quiz à la liste correspondante
+    if (this.activeSemester === 'semestre1') {
+      this.quizzesSemestre1.push(newQuiz);
+    } else {
+      this.quizzesSemestre2.push(newQuiz);
+    }
+    
+    // Mettre à jour les quiz filtrés
+    this.filterQuizzes();
+    
+    // Afficher un message de confirmation
+    alert(`Un nouveau quiz IA sur ${matiere.nom} (${this.getTypeLabel(type)}) a été généré avec succès !`);
   }
 }
